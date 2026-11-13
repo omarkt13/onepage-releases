@@ -17,6 +17,9 @@ final class WeatherProvider: NSObject {
     private(set) var lastSent: HomeData?
     private(set) var lastSentAt: Date?
     private(set) var isFetching = false
+    /// Apple Weather mark and legal link. Apple requires the app to show
+    /// them wherever it uses WeatherKit data.
+    private(set) var attribution: WeatherAttribution?
     var lastError: UserFacingError?
 
     var isOn: Bool = Prefs.weatherOn { didSet { Prefs.weatherOn = isOn } }
@@ -31,6 +34,12 @@ final class WeatherProvider: NSObject {
         authorization = locationManager.authorizationStatus
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyReduced
+    }
+
+    @MainActor
+    func loadAttribution() async {
+        guard attribution == nil else { return }
+        attribution = try? await WeatherService.shared.attribution
     }
 
     var locationAllowed: Bool {
@@ -144,7 +153,13 @@ final class WeatherProvider: NSObject {
 
 extension WeatherProvider: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let wasAllowed = locationAllowed
         authorization = manager.authorizationStatus
+        // Set-up asks for location and moves on. Send the first weather as
+        // soon as the user allows it, instead of waiting for the next hourly request.
+        if !wasAllowed, locationAllowed, isOn, usesLocation {
+            Task { @MainActor in await self.sendNow() }
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

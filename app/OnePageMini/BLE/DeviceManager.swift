@@ -95,6 +95,7 @@ final class DeviceManager: NSObject {
     @ObservationIgnored private(set) var peripheral: CBPeripheral?
     @ObservationIgnored private var characteristics: [CBUUID: CBCharacteristic] = [:]
     @ObservationIgnored private var pendingNotifySetups = 0
+    @ObservationIgnored private var notifySetupFailed = false
     @ObservationIgnored private var ops: [PendingOp] = []
     @ObservationIgnored private var inFlight: PendingOp?
     @ObservationIgnored private var writeReadyWaiters: [CheckedContinuation<Void, Error>] = []
@@ -561,20 +562,23 @@ extension DeviceManager: CBPeripheralDelegate {
         guard error == nil, let service = peripheral.services?.first(where: { $0.uuid == Self.serviceUUID }) else {
             lastError = UserFacingError(title: "This is not a OnePage Mini",
                                         message: "The device does not offer the OnePage service. Check that you picked the right device.")
+            abandonSetup(peripheral)
             return
         }
         peripheral.discoverCharacteristics(nil, for: service)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        guard error == nil else {
-            lastError = UserFacingError("Could not set up the device", error!)
+        if let error {
+            lastError = UserFacingError("Could not set up the device", error)
+            abandonSetup(peripheral)
             return
         }
         for ch in service.characteristics ?? [] {
             characteristics[ch.uuid] = ch
         }
         pendingNotifySetups = 0
+        notifySetupFailed = false
         for uuid in Self.notifyUUIDs {
             if let ch = characteristics[uuid] {
                 pendingNotifySetups += 1
@@ -587,11 +591,32 @@ extension DeviceManager: CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-        if let error {
+        if let error, !notifySetupFailed {
+            notifySetupFailed = true
             lastError = UserFacingError("Pairing did not finish", Self.map(error))
         }
         pendingNotifySetups -= 1
-        if pendingNotifySetups == 0 { linkReady(peripheral) }
+        guard pendingNotifySetups == 0 else { return }
+        if notifySetupFailed {
+            // The user declined the pairing prompt, or the bond is stale.
+            // Do not record the device as paired.
+            abandonSetup(peripheral)
+        } else {
+            linkReady(peripheral)
+        }
+    }
+
+    /// Stops a connection that could not be set up. A device the phone is
+    /// already paired with stays the reconnection target.
+    private func abandonSetup(_ p: CBPeripheral) {
+        characteristics.removeAll()
+        if p.identifier != pairedPeripheralID {
+            central?.cancelPeripheralConnection(p)
+            if peripheral?.identifier == p.identifier { peripheral = nil }
+            state = .idle
+        } else {
+            state = .waitingForDevice
+        }
     }
 
     private func linkReady(_ p: CBPeripheral) {

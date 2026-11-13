@@ -25,6 +25,7 @@ final class AppModel {
         calendar = CalendarService(device: device)
         weather = WeatherProvider(device: device)
         library = BookLibrary(device: device)
+        updater.device = device
 
         device.onReady = { [weak self] in
             Task { @MainActor in await self?.deviceBecameReady() }

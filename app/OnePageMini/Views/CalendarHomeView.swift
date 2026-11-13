@@ -5,6 +5,7 @@ import SwiftUI
 /// Calendar sync and Home screen set-up: calendars, sync time, weather place, clock.
 struct CalendarHomeView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         @Bindable var calendar = model.calendar
@@ -111,15 +112,30 @@ struct CalendarHomeView: View {
                     }
                     .pickerStyle(.segmented)
                     if let data = weather.lastSent, let t = data.tempNowDeci {
+                        let celsius = Double(t) / 10
+                        let f = data.fahrenheit == true
                         LabeledContent("Last sent",
-                                       value: String(format: "%@ %.1f °C, %@", data.condition?.label ?? "",
-                                                     Double(t) / 10, weather.placeName ?? ""))
+                                       value: String(format: "%@ %.0f %@, %@", data.condition?.label ?? "",
+                                                     f ? celsius * 9 / 5 + 32 : celsius, f ? "°F" : "°C",
+                                                     weather.placeName ?? ""))
                     }
                 }
             } header: {
                 Text("Weather")
             } footer: {
-                Text("Weather comes from Apple Weather. The device asks for it about every hour and hides it when it is old.")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Weather comes from Apple Weather. The device asks for it about every hour and hides it when it is old.")
+                    if let a = weather.attribution {
+                        AsyncImage(url: colorScheme == .dark ? a.combinedMarkDarkURL : a.combinedMarkLightURL) { image in
+                            image.resizable().scaledToFit()
+                        } placeholder: {
+                            Text(a.serviceName)
+                        }
+                        .frame(height: 14)
+                        .accessibilityLabel(a.serviceName)
+                        Link("Weather data sources", destination: a.legalPageURL)
+                    }
+                }
             }
 
             Section("Clock") {
@@ -138,6 +154,7 @@ struct CalendarHomeView: View {
             }
         }
         .navigationTitle("Calendar and Home")
+        .task { await weather.loadAttribution() }
         .errorAlert($calendar.lastError)
         .errorAlert($weather.lastError)
     }

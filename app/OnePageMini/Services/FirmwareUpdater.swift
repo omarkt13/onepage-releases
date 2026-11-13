@@ -33,6 +33,10 @@ final class FirmwareUpdater: NSObject {
     @ObservationIgnored private var transport: McuMgrBleTransport?
     @ObservationIgnored private var activity: BackgroundActivity?
     @ObservationIgnored private var targetVersion: String?
+    /// The OnePage link, used to hold the shortest connection interval
+    /// during the upload (firmware spec section 8).
+    @ObservationIgnored weak var device: DeviceManager?
+    @ObservationIgnored private var fastLinkTask: Task<Void, Never>?
 
     var isBusy: Bool {
         switch phase {
@@ -115,6 +119,7 @@ final class FirmwareUpdater: NSObject {
             self.dfu = manager
             targetVersion = manifest.version
             phase = .uploading(0)
+            holdFastLink()
             try manager.start(package: package)
         } catch let e as UpdateError {
             fail(e.message)
@@ -134,8 +139,27 @@ final class FirmwareUpdater: NSObject {
         cleanUp()
     }
 
+    /// The device returns to its idle interval 30 s after the last FAST
+    /// command, so repeat it every 10 s while the update runs.
+    @MainActor
+    private func holdFastLink() {
+        fastLinkTask?.cancel()
+        fastLinkTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let device = self?.device else { return }
+                await device.setFastLink(true)
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+            }
+        }
+    }
+
     @MainActor
     private func cleanUp() {
+        if fastLinkTask != nil {
+            fastLinkTask?.cancel()
+            fastLinkTask = nil
+            if let device { Task { @MainActor in await device.setFastLink(false) } }
+        }
         transport?.close()
         transport = nil
         dfu = nil
