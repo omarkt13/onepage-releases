@@ -26,6 +26,7 @@ struct DeviceSettingsView: View {
             } footer: {
                 Text("Quality: cleanest text, slower page turns. Fast: quickest page turns, with more ghosting between full refreshes.")
             }
+            .disabled(!device.state.isConnected)
             Section {
                 Picker("Alert strength", selection: Binding(
                     get: { s.alertStrength ?? .medium },

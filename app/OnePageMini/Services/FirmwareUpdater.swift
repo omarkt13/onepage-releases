@@ -51,6 +51,9 @@ final class FirmwareUpdater: NSObject {
     @MainActor
     func check(currentVersion: String?, hardwareRevision: UInt8?, userAsked: Bool) async -> FirmwareManifest? {
         guard !isBusy else { return nil }
+        // Without the device's version the result means nothing. Do not use
+        // up the daily check; the next reconnection tries again.
+        if !userAsked, currentVersion == nil { return available }
         if !userAsked, let last = Prefs.lastFirmwareCheck, Date().timeIntervalSince(last) < 24 * 3600 {
             return available
         }

@@ -206,7 +206,14 @@ final class BookLibrary {
                 }
                 // Every byte went out once. Ask where the device is.
                 try await device.write(TransferCommand.query(bookID: bookID).encode(), to: DeviceManager.transferControlUUID)
-                let offset = try await nextProgress(replies, bookID: bookID)
+                var offset = try await nextProgress(replies, bookID: bookID)
+                // A PROGRESS sent for an earlier batch of 32 blocks can arrive
+                // before the QUERY reply. Within one session the device's
+                // offset only grows, so the largest one is the newest.
+                for case let .progress(id, status, o) in replies.drain()
+                    where id == bookID && (status == .ok || status == .badBlock) {
+                    offset = max(offset, o)
+                }
                 plan.apply(deviceOffset: offset)
                 update(bookID) { $0.sentBytes = plan.confirmedOffset }
                 if plan.confirmedOffset >= plan.totalLength { break }

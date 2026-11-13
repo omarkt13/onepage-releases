@@ -150,6 +150,13 @@ enum Prefs {
         set { d.set(Array(newValue), forKey: "suggestedTitleOnly") }
     }
 
+    /// The firmware version the phone last alerted about, so the
+    /// "update available" alert shows once per version.
+    static var lastUpdateAlertVersion: String? {
+        get { d.string(forKey: "lastUpdateAlertVersion") }
+        set { d.set(newValue, forKey: "lastUpdateAlertVersion") }
+    }
+
     static var lowBatteryAlerted: Bool {
         get { d.bool(forKey: "lowBatteryAlerted") }
         set { d.set(newValue, forKey: "lowBatteryAlerted") }

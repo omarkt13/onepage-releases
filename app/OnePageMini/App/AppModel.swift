@@ -58,6 +58,10 @@ final class AppModel {
     /// iOS gives the app a few seconds in the background to answer.
     @MainActor
     private func handle(_ request: DataRequest) async {
+        // The device asks at every reconnection, and `deviceBecameReady` already
+        // sends weather and the calendar then. Answering both would send the
+        // week twice and use two WeatherKit calls.
+        if request.reason == .reconnected { return }
         let activity = BackgroundActivity(name: "OnePageDataRequest")
         defer { activity.end() }
         let foreground = UIApplication.shared.applicationState == .active

@@ -10,10 +10,10 @@ issue and all checks pass.
 
 | Item | Value |
 |---|---|
-| Last pass | 7 |
-| Next area | (b) app against specs (rotation 2) |
+| Last pass | 8 |
+| Next area | (c) firmware and app byte by byte (rotation 2) |
 | Consecutive clean passes | 0 |
-| Passes left before the 12-pass limit | 5 |
+| Passes left before the 12-pass limit | 4 |
 
 Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and app byte by byte,
 (d) Swift compile risk, (e) firmware robustness, (f) test coverage and `docs/TESTING.md`.
@@ -29,6 +29,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 5 | (e) firmware robustness | 0 | 4 | 5 | 6 | No | 3b28eab |
 | 6 | (f) test coverage and `docs/TESTING.md` | 0 | 4 | 5 | 9 | No | 17a68cb |
 | 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
+| 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | PENDING |
 
 ## Open items
 
@@ -66,4 +67,5 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | Interrupted book transfer blocks the next book with "busy" (open item 7) | Pass 3: the newest START wins; the firmware discards the other partial book |
 | No bench test plan; 7-day rule not testable on the bench; no manifest signing tool | Pass 6: `docs/TESTING.md`, bench Kconfig `ONEPAGE_TEST_AWAY_ERASE_MIN`, `shared/tools/make_manifest.py` |
 | Reading position lost at power off; second discovery on a key refresh; no on-screen 10% warning | Pass 7: `app_power_off()` saves the position first; discovery runs once per connection; Home shows "charge soon" |
+| Phone alerted "update available" for the same version up to hourly; reconnection sync sent twice; stale PROGRESS after QUERY | Pass 8: one alert per version; the app ignores the reconnection data request because `onReady` covers it; largest offset after QUERY |
 | Where the source goes | The user chose to push to this repository, `omarkt13/onepage-releases`, branch `claude/magical-edison-9m5j8x` |
