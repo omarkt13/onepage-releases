@@ -1,0 +1,237 @@
+{
+  "protocol_version": 1,
+  "crc": [
+    {
+      "input": "313233343536373839",
+      "crc32": 3421780262,
+      "crc16": 10673
+    },
+    {
+      "input": "",
+      "crc32": 0,
+      "crc16": 65535
+    },
+    {
+      "input": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+      "crc32": 688229491,
+      "crc16": 16317
+    }
+  ],
+  "status": {
+    "fields": {
+      "battery": 87,
+      "charging": 1,
+      "firmware": "1.0.0",
+      "storage_free_kib": 60000,
+      "storage_total_kib": 65536,
+      "last_error": 0,
+      "calendar_version": 42,
+      "calendar_synced_at": 847000000,
+      "hw_rev": 1
+    },
+    "bytes": "010101570201010305312e302e30040460ea00000504000001000602000007042a0000000804c0317c32090101"
+  },
+  "settings": {
+    "fields": {
+      "quiet_on": 1,
+      "quiet_start": 1320,
+      "quiet_end": 420,
+      "refresh_mode": 1,
+      "clock_12h": 0,
+      "language": "en",
+      "alert_strength": 2
+    },
+    "bytes": "01010101020228050302a4010401010501000602656e070102",
+    "partial_with_unknown": "017f03010203070103",
+    "partial_expect": {
+      "alert_strength": 3
+    }
+  },
+  "app_filter": {
+    "entry": {
+      "mode": 1,
+      "pattern": 2,
+      "flags": 1,
+      "id": "com.example.bank"
+    },
+    "entry_bytes": "01020110636f6d2e6578616d706c652e62616e6b",
+    "set_bytes": "010201020110636f6d2e6578616d706c652e62616e6b",
+    "list_request_bytes": "01010000",
+    "list_reply": {
+      "total": 2,
+      "start": 0,
+      "entries": [
+        {
+          "mode": 0,
+          "pattern": 0,
+          "flags": 0,
+          "id": "com.apple.MobileSMS"
+        },
+        {
+          "mode": 2,
+          "pattern": 4,
+          "flags": 0,
+          "id": "com.example.game"
+        }
+      ],
+      "bytes": "0181020000000200000013636f6d2e6170706c652e4d6f62696c65534d5302040010636f6d2e6578616d706c652e67616d65"
+    }
+  },
+  "home_data": {
+    "fields": {
+      "temp_now": -35,
+      "temp_high": 21,
+      "temp_low": -80,
+      "condition": 8,
+      "valid_until": 847003600,
+      "place": "Zürich",
+      "unit": 0
+    },
+    "bytes": "010102ddff020215000302b0ff0401080504d03f7c3206075ac3bc72696368070100"
+  },
+  "calendar": {
+    "generated_at": 847000100,
+    "events_in": [
+      {
+        "start": 847000000,
+        "end": 847003600,
+        "title": "Stand-up",
+        "place": "Room 4"
+      },
+      {
+        "start": 846979200,
+        "end": 847065600,
+        "all_day": true,
+        "title": "Café day ☕",
+        "place": ""
+      },
+      {
+        "start": 847010000,
+        "end": 847013600,
+        "title": "Quarterly planning review with the hardware, firmware and app teams, plus suppliers",
+        "place": "Building 7, third floor, the large meeting room next to the kitchen area"
+      },
+      {
+        "start": 847020000,
+        "end": 847023600,
+        "title": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉",
+        "place": "x"
+      }
+    ],
+    "events_out": [
+      {
+        "start": 847000000,
+        "end": 847003600,
+        "all_day": false,
+        "title": "Stand-up",
+        "place": "Room 4"
+      },
+      {
+        "start": 846979200,
+        "end": 847065600,
+        "all_day": true,
+        "title": "Café day ☕",
+        "place": ""
+      },
+      {
+        "start": 847010000,
+        "end": 847013600,
+        "all_day": false,
+        "title": "Quarterly planning review with the hardware, firmware and app teams, plus suppl…",
+        "place": "Building 7, third floor, the large meeting room next to the…"
+      },
+      {
+        "start": 847020000,
+        "end": 847023600,
+        "all_day": false,
+        "title": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉…",
+        "place": "x"
+      }
+    ],
+    "blob": "24327c320400c0317c32d03f7c3200085374616e642d757006526f6f6d203480e07b3200327d32010d436166c3a92064617920e2989500d0587c32e0667c320052517561727465726c7920706c616e6e696e67207265766965772077697468207468652068617264776172652c206669726d7761726520616e6420617070207465616d732c20706c757320737570706ce280a63e4275696c64696e6720372c20746869726420666c6f6f722c20746865206c61726765206d656574696e6720726f6f6d206e65787420746f20746865e280a6e07f7c32f08d7c32009ff09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89f09f8e89e280a60178",
+    "crc32": 4030181427,
+    "begin_bytes": "0101070000007d01000033b037f0",
+    "data_first_bytes": "01020000000024327c320400c0317c32d03f7c3200085374616e642d757006526f6f6d203480e07b3200327d32010d436166c3a92064617920e2989500d0587c32e0667c320052517561727465726c7920706c616e6e696e672072657669657720776974682074686520",
+    "commit_bytes": "010307000000",
+    "ack_ok_bytes": "018000070000007d010000"
+  },
+  "truncate": [
+    {
+      "in": "short",
+      "max_chars": 80,
+      "max_bytes": 160,
+      "out": "short"
+    },
+    {
+      "in": "Quarterly planning review with the hardware, firmware and app teams, plus suppliers",
+      "max_chars": 80,
+      "max_bytes": 160,
+      "out": "Quarterly planning review with the hardware, firmware and app teams, plus suppl…"
+    },
+    {
+      "in": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉",
+      "max_chars": 80,
+      "max_bytes": 160,
+      "out": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉…"
+    },
+    {
+      "in": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "max_chars": 80,
+      "max_bytes": 160,
+      "out": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "in": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "max_chars": 80,
+      "max_bytes": 160,
+      "out": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…"
+    }
+  ],
+  "data_request": [
+    {
+      "kind": 1,
+      "reason": 0,
+      "bytes": "010100"
+    },
+    {
+      "kind": 3,
+      "reason": 1,
+      "bytes": "010301"
+    }
+  ],
+  "privacy": {
+    "read_bytes": "01010101",
+    "erase_bytes": "01e00445524153"
+  },
+  "transfer": {
+    "start_bytes": "0101d4c3b2a170110100785634120431393834",
+    "block": {
+      "offset": 4096,
+      "data": "49742077617320612062726967687420636f6c642064617920696e20417072696c2c20616e642074686520636c6f636b73207765726520737472696b696e6720746869727465656e2e0a",
+      "crc16": 1688,
+      "bytes": "0100100000980649742077617320612062726967687420636f6c642064617920696e20417072696c2c20616e642074686520636c6f636b73207765726520737472696b696e6720746869727465656e2e0a"
+    },
+    "progress_bytes": "0181d4c3b2a10100100000",
+    "list_reply_bytes": "01850100000001d4c3b2a170110100b88800000431393834"
+  },
+  "cp1252": {
+    "in": "Chapter One\nThe “quick” brown fox — naïve café… 1‑2 ✓\nChapter Two\nEnd.\n",
+    "out": "43686170746572204f6e650a5468652093717569636b942062726f776e20666f782097206e61ef766520636166e98520312d32203f0a436861707465722054776f0a456e642e0a"
+  },
+  "opb": {
+    "title": "Test Book",
+    "author": "A. Writer",
+    "chapters": [
+      [
+        0,
+        "Chapter One"
+      ],
+      [
+        54,
+        "Chapter Two"
+      ]
+    ],
+    "bytes": "4f504231010102004400000047000000095465737420426f6f6b09412e20577269746572000000000b43686170746572204f6e65360000000b436861707465722054776f43686170746572204f6e650a5468652093717569636b942062726f776e20666f782097206e61ef766520636166e98520312d32203f0a436861707465722054776f0a456e642e0a",
+    "crc32": 3855479624
+  }
+}
