@@ -1,0 +1,9 @@
+/*
+ * Application-only devicetree for the OnePage Mini. The book partition on
+ * the external flash belongs to the application; MCUboot does not use it.
+ */
+/ {
+	chosen {
+		nordic,pm-ext-flash = &book_flash;
+	};
+};

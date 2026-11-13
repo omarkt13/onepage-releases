@@ -1,0 +1,6 @@
+board:
+  name: onepage_mini
+  full_name: OnePage Mini
+  vendor: onepage
+  socs:
+  - name: nrf54l15

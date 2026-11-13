@@ -1,0 +1,30 @@
+description: |
+  E-paper panel with an UltraChip UC81xx-family controller, as on the
+  Sunshine SDE0368NQW-52 (3.68", 528 x 792). The command set is in
+  src/drivers/epd_uc81xx.c, marked TODO(datasheet).
+
+compatible: "onepage,epd-uc81xx"
+
+include: spi-device.yaml
+
+properties:
+  width:
+    type: int
+    required: true
+  height:
+    type: int
+    required: true
+  dc-gpios:
+    type: phandle-array
+    required: true
+    description: Data/command select. High = data.
+  reset-gpios:
+    type: phandle-array
+    required: true
+  busy-gpios:
+    type: phandle-array
+    required: true
+    description: BUSY output of the controller. Flag it GPIO_ACTIVE_LOW when low means busy.
+  power-gpios:
+    type: phandle-array
+    description: Load switch for the panel supply. Optional.

@@ -60,7 +60,7 @@ firmware update, Battery (`0x180F`), Device Information (`0x180A`).
 
 | Mode | Interval | Content |
 |---|---|---|
-| Pairing window (2 minutes) | 100 ms | Flags; complete name `OnePage Mini`; 128-bit service UUID `4f500001-…`; manufacturer data (below) with `PAIRING` set; ANCS solicitation UUID `7905F431-B5CE-4E99-A40F-4B1E122D00D0` in the scan response |
+| Pairing window (2 minutes) | 100 ms | Advertising packet: flags, 128-bit service UUID `4f500001-…`, manufacturer data (below) with `PAIRING` set. Scan response: ANCS solicitation UUID `7905F431-B5CE-4E99-A40F-4B1E122D00D0` and shortened name `OnePage`. The full name `OnePage Mini` is in the GAP Device Name characteristic, because it does not fit in 31 bytes |
 | Bonded, reconnecting | 1 s for 30 s, then 2 s | Same, `PAIRING` clear. Directed advertising is not used, because iOS rotates its address |
 | No phone, not in pairing window | Not advertising | |
 

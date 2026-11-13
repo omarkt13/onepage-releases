@@ -1,0 +1,36 @@
+menu "OnePage Mini"
+
+config ONEPAGE_HW_REV
+	int "Hardware revision reported in Status"
+	default 1
+
+config ONEPAGE_FW_VERSION
+	string "Firmware version string reported in Status"
+	default "1.0.0"
+
+config ONEPAGE_NFC_URL_HOST
+	string "Host and path of the NFC link, before the device ID"
+	default "onepage.app/p/"
+	help
+	  The tag holds https://<this><DEVICE_ID>. onepage.app is a
+	  placeholder until the domain is registered (protocol section 4).
+
+config ONEPAGE_PAIRING_WINDOW_S
+	int "Pairing window length, seconds"
+	default 120
+
+config ONEPAGE_EPD_POWER_HOLD_MS
+	int "Keep the display supply on this long after the last refresh"
+	default 120000
+	help
+	  Partial refresh needs the previous image in the controller's RAM,
+	  which is lost when the supply is cut. The supply is cut after this
+	  idle time, and the next refresh is a full one.
+
+config ONEPAGE_UNSECURED_TIMEOUT_S
+	int "Disconnect a link that is not encrypted after this many seconds"
+	default 15
+
+endmenu
+
+source "Kconfig.zephyr"

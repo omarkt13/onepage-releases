@@ -1,0 +1,11 @@
+description: Azoteq IQS7222A capacitive controller, used as a one-axis slider.
+
+compatible: "azoteq,iqs7222a"
+
+include: i2c-device.yaml
+
+properties:
+  rdy-gpios:
+    type: phandle-array
+    required: true
+    description: RDY line, open drain, low when the device has data. Must be wake-capable.

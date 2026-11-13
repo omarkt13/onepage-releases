@@ -1,0 +1,15 @@
+identifier: onepage_mini/nrf54l15/cpuapp
+name: OnePage Mini
+type: mcu
+arch: arm
+toolchain:
+  - gnuarmemb
+  - zephyr
+ram: 256
+flash: 1524
+supported:
+  - gpio
+  - i2c
+  - spi
+  - pwm
+vendor: onepage

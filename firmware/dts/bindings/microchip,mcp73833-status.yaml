@@ -1,0 +1,14 @@
+description: Status outputs of an MCP73833 Li-ion charger (open drain, active low).
+
+compatible: "microchip,mcp73833-status"
+
+properties:
+  stat1-gpios:
+    type: phandle-array
+    required: true
+  stat2-gpios:
+    type: phandle-array
+    required: true
+  pg-gpios:
+    type: phandle-array
+    description: Power-good output, if routed.
