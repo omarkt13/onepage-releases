@@ -98,7 +98,7 @@ record each result before the bench tests.
 | T-PAIR-6 Tap on a paired device | Device paired to phone A | Tap phone B, which has the app | Phone B opens the app only. The device does not open pairing. Phone A stays paired |
 | T-PAIR-7 Window closes | Device erased | Open pairing, wait 2 minutes 10 s | The device stops pairing advertising. The footer says "Pairing closed" |
 | T-PAIR-8 Pair a new phone | Device paired, with calendar, weather, filter entries and settings | Pair phone B through Settings > Pair a new phone | Calendar, weather, settings and app filter are erased before the new bond (firmware spec section 7) |
-| T-PAIR-9 Reconnection | Paired | 1. Walk out of range for 30 s. 2. Return. 3. Restart the iPhone | The link returns with no user action both times (app state restoration). Record the reconnect time in M-6 |
+| T-PAIR-9 Reconnection | Paired | 1. Walk out of range for 30 s. 2. Return. 3. Restart the iPhone | The link returns with no user action both times (app state restoration). No "Could not connect" alert shows on the phone while out of range (pass 10). After each reconnection: one calendar sync and one weather update only, each notification shows once on the device (pass 7 L1, pass 8 L1). Repeat step 1–2 with the app in the background and the phone locked: the sync still completes (pass 9 M2). Record the reconnect time in M-6 |
 
 ## 2. Notifications
 
@@ -146,7 +146,7 @@ record each result before the bench tests.
 
 | ID | Setup | Steps | Pass criteria |
 |---|---|---|---|
-| T-BOOK-1 Send | A 400 KB EPUB without DRM | Add from Files, send | Book appears in the device Library. Record the speed (spec: 30 to 80 KB/s) |
+| T-BOOK-1 Send | A 400 KB EPUB without DRM | Add from Files, send | Book appears in the device Library. The app log shows no rewind after a routine PROGRESS, only after a bad-block reply or QUERY (pass 9 M1). Record the speed (spec: 30 to 80 KB/s) |
 | T-BOOK-2 Resume | As T-BOOK-1 | Turn off Bluetooth at about 50%; turn it on | The transfer continues from the device's offset, not from 0. The finished book opens and its CRC matches |
 | T-BOOK-3 Background | As T-BOOK-1 | Lock the iPhone during the transfer | The transfer continues while iOS allows, then resumes when the app returns |
 | T-BOOK-4 Restart a partial book | Stop a transfer at 50% | Send another book | The new book transfers. The device discards the old partial book (no "busy") |
@@ -164,7 +164,7 @@ Make the manifest with `shared/tools/make_manifest.py sign` over
 
 | ID | Setup | Steps | Pass criteria |
 |---|---|---|---|
-| T-UPD-1 Success | Version N on the device, N+1 in the manifest, battery over 30% | Update from the app | Progress shows; the device restarts; log shows `image confirmed (0)`; Status reports N+1. Record the duration |
+| T-UPD-1 Success | Version N on the device, N+1 in the manifest, battery over 30% | Update from the app | Progress shows; the device restarts; log shows `image confirmed (0)`; Status reports N+1. Before the update, the phone shows the "update available" alert once for N+1, and not again after the next daily check (pass 8 M1). Record the duration |
 | T-UPD-2 Battery gate | Battery under 30%, no charger | Try the update | The app refuses it and says to charge. On the charger it is allowed |
 | T-UPD-3 Bad signature | Change one byte of `size` in the manifest | Check for updates | The app refuses it as a bad signature |
 | T-UPD-4 Bad hash | Serve a different image with the old manifest | Update | The app refuses it after the download (hash) |

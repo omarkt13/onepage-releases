@@ -1,5 +1,56 @@
 # Review loop status
 
+## Final summary (after pass 12)
+
+The review loop ended at the 12-pass limit. The stop rule for two clean
+rotations could not be met in 12 passes: passes 10 and 12 were clean, and
+pass 11 found two medium issues, which it fixed. No pass found a high issue.
+Across all passes: 0 high, 24 medium, 48 low findings; 59 fixed. The rest are open items below.
+
+### State
+
+| Part | State |
+|---|---|
+| Protocol (`docs/protocol.md`, `shared/`) | Complete. The reference encoder regenerates `vectors.json` with no difference. Firmware and app tests both read the vectors |
+| Firmware (`firmware/`) | Complete for bench testing. Builds with MCUboot for the nRF54L15 DK and the custom `onepage_mini` board, no warnings from `firmware/src`. App image 395 KB flash, 223 KB RAM (85 %). Host tests: 3 of 3 suites pass. Never run on hardware |
+| App (`app/`) | Complete in code, never compiled. Passes 4 and 10 read every Swift file for compile risks. `OnePageKit` tests (vectors, logic, coverage) have not run |
+| Bench plan (`docs/TESTING.md`) | 8 first-build steps for the app, 62 bench tests, measurement table from firmware spec section 11 |
+
+### Verified here / not verified
+
+| Verified | Not verified |
+|---|---|
+| Protocol byte layout on both sides, against shared vectors (firmware side run; Swift side written) | Any Swift compile or test run |
+| Firmware portable logic: privacy timing, calendar, transfer resume, filter, gestures, navigation, reader paging, battery policy | Any run on the DK or the board: Bluetooth with iOS, ANCS, AMS, CTS, NFC, SMP update |
+| Firmware compiles and links for both boards with MCUboot | Display, touch, flash, gauge and haptic drivers (datasheet values are placeholders) |
+| Signed manifest tool output matches the app's check (checked in Python) | Power, latency and stack figures |
+
+### Open items by group
+
+1. **Needs hardware or datasheets:** item 4 (PCB pins, crystal capacitors),
+   item 5 (display commands and waveforms, IQS7222A set-up, S25HL512T sector
+   map, MAX17048 4.35 V model, LRA voltages).
+2. **Needs a Mac build:** item 6 (first compile, McuManager 1.6 API), item 14
+   (run the Swift tests). Optional app changes: items 16, 18.
+3. **Needs user decisions:** see "Decisions needed from the user" below:
+   module LV or LQ, domain, Bluetooth company ID, firmware and manifest
+   signing keys with the manifest URL (also closes item 15), calendar
+   default when the phone is away.
+4. **Bench tests:** items 1 (T-PWR-3), 2 (T-PWR-4), 3 (T-NOT-8), 9 and 17
+   (T-CAL-7, then an app fix), 11 (T-PWR-7), 12 (T-BOOK-6), 13 (T-PWR-6).
+
+### First 5 steps to start bench testing
+
+1. On a Mac, do `docs/TESTING.md` A1–A5: generate the project, run
+   `swift test` in `app/OnePageKit`, fix any compile errors, build for a device.
+2. Build and flash the DK firmware (`docs/TESTING.md` section 0.2) and open the
+   serial log.
+3. Run T-PAIR-3 (scan pairing), then T-NOT-1 and T-NOT-2: notifications on the
+   DK log with no display fitted.
+4. Run T-CAL-1, T-WX-1 and T-BOOK-1 to check the OnePage service end to end.
+5. Make the manifest key (A7) and run T-UPD-1 and T-UPD-6 (update and
+   rollback) before you fit the panel and the other parts.
+
 Goal: the repository is complete and ready for bench testing.
 
 ## Stop rule
@@ -10,10 +61,10 @@ issue and all checks pass.
 
 | Item | Value |
 |---|---|
-| Last pass | 11 |
-| Next area | (f) test coverage and `docs/TESTING.md` (rotation 2) |
-| Consecutive clean passes | 0 |
-| Passes left before the 12-pass limit | 1 |
+| Last pass | 12 (loop ended at the 12-pass limit) |
+| Next area | None. A new loop would start at (a) |
+| Consecutive clean passes | 1 |
+| Passes left before the 12-pass limit | 0 |
 
 Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and app byte by byte,
 (d) Swift compile risk, (e) firmware robustness, (f) test coverage and `docs/TESTING.md`.
@@ -33,6 +84,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
 | 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | 00cf469 |
 | 11 | (e) firmware robustness | 0 | 2 | 4 | 6 | No | b9baeaa |
+| 12 | (f) test coverage and `docs/TESTING.md` | 0 | 0 | 3 | 3 | Yes | (this commit) |
 
 ## Open items
 
