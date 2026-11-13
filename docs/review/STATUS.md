@@ -30,7 +30,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 6 | (f) test coverage and `docs/TESTING.md` | 0 | 4 | 5 | 9 | No | 17a68cb |
 | 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
 | 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | 975d542 |
-| 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | (see log) |
+| 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
 
 ## Open items
 
