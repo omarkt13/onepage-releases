@@ -30,6 +30,8 @@ struct privacy {
 	bool locked;
 	bool cal_erased;
 	uint64_t down_since_ms;
+	/* Time away counted before the last restart (restored from storage). */
+	uint64_t away_before_ms;
 };
 
 /* At boot the device has no link, holds nothing sensitive, and starts locked. */
@@ -37,6 +39,10 @@ void privacy_init(struct privacy *p, uint64_t now_ms);
 unsigned privacy_link_up(struct privacy *p, uint64_t now_ms);
 void privacy_link_down(struct privacy *p, uint64_t now_ms);
 unsigned privacy_tick(struct privacy *p, uint64_t now_ms);
+/* Adds time away that was counted before a restart. Call after init. */
+void privacy_set_away_before(struct privacy *p, uint64_t away_ms);
+/* Total time without the phone, including time before a restart. 0 when linked. */
+uint64_t privacy_away_ms(const struct privacy *p, uint64_t now_ms);
 /* Milliseconds until privacy_tick() has work, or UINT64_MAX. */
 uint64_t privacy_next_deadline(const struct privacy *p, uint64_t now_ms);
 

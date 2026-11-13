@@ -52,6 +52,8 @@ static void load_filter_chunk(const uint8_t *buf, size_t len)
 	}
 }
 
+static uint32_t away_min;
+
 static int h_set(const char *name, size_t len, settings_read_cb read_cb, void *cb_arg)
 {
 	const char *next;
@@ -79,6 +81,14 @@ static int h_set(const char *name, size_t len, settings_read_cb read_cb, void *c
 			if (n > 0) {
 				load_filter_chunk(filter_buf, (size_t)n);
 			}
+		}
+		return 0;
+	}
+	if (settings_name_steq(name, "away", &next) && !next) {
+		uint32_t min;
+
+		if (len == sizeof(min) && read_cb(cb_arg, &min, sizeof(min)) == sizeof(min)) {
+			away_min = min;
 		}
 		return 0;
 	}
@@ -151,11 +161,20 @@ int store_init(void)
 	err = settings_load();
 	load_calendar();
 	g_app.filter.dirty = false;
+	privacy_set_away_before(&g_app.privacy, (uint64_t)away_min * 60u * 1000u);
 	app_unlock();
 	return err;
 }
 
 /* ---- saving ------------------------------------------------------------------------ */
+
+void store_save_away(uint32_t minutes)
+{
+	if (minutes != away_min) {
+		away_min = minutes;
+		(void)settings_save_one("op/away", &minutes, sizeof(minutes));
+	}
+}
 
 void store_save_settings(void)
 {

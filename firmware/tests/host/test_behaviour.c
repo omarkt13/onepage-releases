@@ -50,6 +50,29 @@ static void test_privacy_timing(void)
 	CHECK_EQ(privacy_next_deadline(&p, 1000000 + PRIV_ERASE_DELAY_MS + 1), UINT64_MAX);
 }
 
+/* A restart while away keeps counting toward the 7-day rule. */
+static void test_privacy_restart(void)
+{
+	struct privacy p;
+	const uint64_t before = PRIV_ERASE_DELAY_MS - 3600000ull; /* 6 days 23 h */
+
+	privacy_init(&p, 0);
+	privacy_set_away_before(&p, before);
+	CHECK_EQ(privacy_away_ms(&p, 1000), before + 1000);
+	CHECK_EQ(privacy_tick(&p, 1000), PRIV_ACT_NONE); /* boots locked already */
+	CHECK_EQ(privacy_next_deadline(&p, 0), 3600000ull);
+	CHECK_EQ(privacy_tick(&p, 3600000ull), PRIV_ACT_ERASE_CAL);
+
+	/* The phone returns: the stored count no longer applies. */
+	privacy_init(&p, 0);
+	privacy_set_away_before(&p, before);
+	privacy_link_up(&p, 10);
+	CHECK_EQ(privacy_away_ms(&p, 20), 0);
+	privacy_link_down(&p, 100);
+	CHECK_EQ(privacy_away_ms(&p, 200), 100);
+	CHECK_EQ(privacy_tick(&p, 100 + PRIV_ERASE_DELAY_MS - 1), PRIV_ACT_LOCK);
+}
+
 /* ---- transfer ------------------------------------------------------------- */
 
 #define FAKE_MAX 20000
@@ -727,6 +750,7 @@ int main(void)
 {
 	static const struct test_case cases[] = {
 		{"privacy_timing", test_privacy_timing},
+		{"privacy_restart", test_privacy_restart},
 		{"transfer_resume", test_transfer_resume},
 		{"calendar_atomic_swap", test_calendar_swap},
 		{"filter_eviction", test_filter_eviction},

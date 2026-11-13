@@ -19,6 +19,9 @@ void store_save_calendar(void);
 /* Deletes calendar, settings, privacy and filter. */
 void store_erase_personal(void);
 
+/* Time without the phone in minutes, so the 7-day rule survives a restart. */
+void store_save_away(uint32_t minutes);
+
 uint32_t store_get_position(uint32_t book_id);
 void store_set_position(uint32_t book_id, uint32_t position);
 void store_delete_position(uint32_t book_id);

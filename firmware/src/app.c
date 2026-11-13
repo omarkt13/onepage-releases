@@ -30,6 +30,7 @@ LOG_MODULE_REGISTER(app, LOG_LEVEL_INF);
 
 #define BATTERY_POLL_MS (5 * 60 * 1000)
 #define POSITION_SAVE_PAGES 20
+#define AWAY_SAVE_STEP_MS (60u * 60u * 1000u)
 
 struct app_state g_app;
 
@@ -124,7 +125,11 @@ static void make_ctx(struct ui_ctx *c)
 	c->cal_count = cal_current_count(&g_app.cal, now);
 	c->book_count = books_count();
 	c->locked = privacy_locked(&g_app.privacy);
-	c->cal_visible = privacy_calendar_visible(&g_app.privacy,
+	/* Without a valid clock the device cannot tell which events are past
+	 * (after a restart away from the phone), so it shows no calendar.
+	 */
+	c->cal_visible = clock_valid() &&
+			 privacy_calendar_visible(&g_app.privacy,
 						  g_app.privacy_cfg.show_calendar_away);
 	c->detail_pages = screens_detail_pages(&g_app.nav);
 }
@@ -448,7 +453,14 @@ static void battery_check(void)
 	if (pct > BATTERY_WARN_PERCENT + 5 || chg != OP_CHG_NONE) {
 		battery_warned = false;
 	}
-	op_service_notify_status();
+	/* Protocol 5.1: notify Status on a change of percent or charging state. */
+	static uint8_t last_pct = 0xFF, last_chg = 0xFF;
+
+	if (pct != last_pct || chg != last_chg) {
+		last_pct = pct;
+		last_chg = chg;
+		op_service_notify_status();
+	}
 }
 
 static void handle(const struct app_evt *e)
@@ -470,6 +482,7 @@ static void handle(const struct app_evt *e)
 		g_app.bonded = true;
 		apply_privacy(privacy_link_up(&g_app.privacy, clock_uptime_ms()));
 		app_unlock();
+		store_save_away(0);
 		q = sched_connected(&sched, clock_uptime_ms() / 1000, clock_now());
 		op_service_notify_status();
 		op_service_data_request(q.kind, q.reason);
@@ -556,8 +569,14 @@ static k_timeout_t periodic(void)
 	uint64_t pd = privacy_next_deadline(&g_app.privacy, now_ms);
 	uint32_t wx_until = g_app.weather.valid ? g_app.weather.valid_until : 0;
 	enum ui_screen screen = g_app.nav.screen;
+	uint64_t away_ms = privacy_away_ms(&g_app.privacy, now_ms);
 	app_unlock();
 
+	/* Record time away once an hour, so a restart does not reset the 7-day rule. */
+	if (away_ms >= AWAY_SAVE_STEP_MS) {
+		store_save_away((uint32_t)((away_ms / AWAY_SAVE_STEP_MS) * (AWAY_SAVE_STEP_MS / 60000u)));
+		wait_ms = MIN(wait_ms, AWAY_SAVE_STEP_MS - away_ms % AWAY_SAVE_STEP_MS);
+	}
 	if (act) {
 		apply_privacy(act);
 		render();
