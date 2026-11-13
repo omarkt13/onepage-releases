@@ -31,7 +31,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
 | 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | 975d542 |
 | 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
-| 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | (see git log) |
+| 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | 00cf469 |
 
 ## Open items
 
