@@ -2,7 +2,7 @@ import Foundation
 
 // App filter characteristic (protocol section 5.3).
 
-public enum FilterMode: UInt8, CaseIterable, Identifiable, Codable {
+public enum FilterMode: UInt8, CaseIterable, Identifiable, Codable, Sendable {
     case show = 0, silent = 1, hide = 2
     public var id: UInt8 { rawValue }
     public var label: String {
@@ -22,7 +22,7 @@ public enum FilterMode: UInt8, CaseIterable, Identifiable, Codable {
     }
 }
 
-public enum AlertPattern: UInt8, CaseIterable, Identifiable, Codable {
+public enum AlertPattern: UInt8, CaseIterable, Identifiable, Codable, Sendable {
     case `default` = 0, single = 1, double = 2, long = 3, none = 4
     public var id: UInt8 { rawValue }
     public var label: String {
@@ -36,7 +36,7 @@ public enum AlertPattern: UInt8, CaseIterable, Identifiable, Codable {
     }
 }
 
-public struct AppFilterEntry: Equatable, Identifiable, Codable {
+public struct AppFilterEntry: Equatable, Identifiable, Codable, Sendable {
     public static let maxIdentifierBytes = 64
     public static let titleOnlyFlag: UInt8 = 0x01
 

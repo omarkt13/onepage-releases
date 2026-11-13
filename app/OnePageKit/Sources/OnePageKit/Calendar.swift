@@ -49,7 +49,7 @@ public enum TextRules {
 
 // MARK: - Calendar blob
 
-public struct CalendarEvent: Equatable {
+public struct CalendarEvent: Equatable, Sendable {
     public var start: UInt32
     public var end: UInt32
     public var allDay: Bool

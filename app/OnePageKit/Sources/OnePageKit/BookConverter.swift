@@ -23,8 +23,8 @@ public enum BookConversionError: Error, CustomStringConvertible {
 /// Converts EPUB and plain-text files to the device's OPB format, on the phone.
 public enum BookConverter {
     public static func convert(fileName: String, bytes: [UInt8]) throws -> OPBBook {
-        let ext = (fileName as NSString).pathExtension.lowercased()
-        let fallbackTitle = ((fileName as NSString).lastPathComponent as NSString).deletingPathExtension
+        let (fallbackTitle, rawExt) = PathParts.split(fileName)
+        let ext = rawExt.lowercased()
         switch ext {
         case "epub":
             do {
@@ -121,7 +121,7 @@ public enum BookConverter {
         }).first else { throw ZipError.missing("package file (OPF)") }
 
         let opf = MiniXML.tokenize(try zip.readString(opfPath))
-        let baseDir = (opfPath as NSString).deletingLastPathComponent
+        let baseDir = PathParts.directory(opfPath)
 
         var manifest: [String: (href: String, type: String)] = [:]
         var spine: [String] = []
@@ -224,5 +224,23 @@ public enum XHTMLText {
         }
         endParagraph()
         return (paragraphs, heading)
+    }
+}
+
+/// Path helpers in plain Swift. `NSString` path methods need bridging that
+/// swift-corelibs-foundation on Linux does not always offer, and OnePageKit
+/// must build there for `swift test`.
+enum PathParts {
+    /// "dir/Name.epub" → ("Name", "epub"). No extension → ("Name", "").
+    static func split(_ path: String) -> (base: String, ext: String) {
+        let last = path.split(separator: "/", omittingEmptySubsequences: true).last.map(String.init) ?? path
+        guard let dot = last.lastIndex(of: "."), dot != last.startIndex else { return (last, "") }
+        return (String(last[..<dot]), String(last[last.index(after: dot)...]))
+    }
+
+    /// "OEBPS/content.opf" → "OEBPS". No directory → "".
+    static func directory(_ path: String) -> String {
+        guard let slash = path.lastIndex(of: "/") else { return "" }
+        return String(path[..<slash])
     }
 }

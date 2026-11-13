@@ -6,7 +6,7 @@ import OnePageKit
 /// Reads the week ahead from EventKit and sends it to the device.
 @Observable
 final class CalendarService {
-    @ObservationIgnored let store = EKEventStore()
+    let store = EKEventStore()
     @ObservationIgnored private weak var device: DeviceManager?
     @ObservationIgnored private var observer: NSObjectProtocol?
     @ObservationIgnored private var syncTask: Task<Void, Never>?

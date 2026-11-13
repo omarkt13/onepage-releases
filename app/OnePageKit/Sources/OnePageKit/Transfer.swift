@@ -29,7 +29,7 @@ public enum TransferCommand {
     }
 }
 
-public enum TransferStatus: UInt8 {
+public enum TransferStatus: UInt8, Sendable {
     case ok = 0, badBlock = 1, crcMismatch = 2, noSpace = 3, unknownBook = 4, busy = 5, storageError = 6
 
     public var message: String {
@@ -45,7 +45,7 @@ public enum TransferStatus: UInt8 {
     }
 }
 
-public struct DeviceBook: Equatable, Identifiable {
+public struct DeviceBook: Equatable, Identifiable, Sendable {
     public var bookID: UInt32
     public var size: UInt32
     public var position: UInt32

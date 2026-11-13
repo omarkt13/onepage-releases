@@ -285,7 +285,12 @@ public struct DataRequest: Equatable {
         let k = try r.u8()
         guard let kind = Kind(rawValue: k) else { throw ProtocolError.invalidValue("data request kind \(k)") }
         self.kind = kind
-        self.reason = r.isAtEnd ? nil : Reason(rawValue: try r.u8())
+        if r.isAtEnd {
+            self.reason = nil
+        } else {
+            let raw = try r.u8()
+            self.reason = Reason(rawValue: raw)
+        }
     }
 }
 

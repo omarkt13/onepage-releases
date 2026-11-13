@@ -3,6 +3,11 @@ import SwiftUI
 
 /// Set-up: find and pair the device, then one page per permission that says
 /// why it is needed before iOS asks.
+///
+/// `@MainActor` because the page properties below are not `body`: with the
+/// iOS 17 SDK (Xcode 15) only `body` is main-actor isolated, and the pages call
+/// `openAppSettings()` and set `@State`.
+@MainActor
 struct OnboardingView: View {
     enum Step: Int, CaseIterable {
         case welcome, bluetooth, iosPrompts, find, calendar, weather, notifications, done

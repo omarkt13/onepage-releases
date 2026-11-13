@@ -8,8 +8,8 @@ import WeatherKit
 /// sends them to the device. Uses approximate location, or a typed city.
 @Observable
 final class WeatherProvider: NSObject {
-    @ObservationIgnored private let locationManager = CLLocationManager()
-    @ObservationIgnored private let geocoder = CLGeocoder()
+    private let locationManager = CLLocationManager()
+    private let geocoder = CLGeocoder()
     @ObservationIgnored private weak var device: DeviceManager?
     @ObservationIgnored private var locationWaiters: [CheckedContinuation<CLLocation?, Never>] = []
 

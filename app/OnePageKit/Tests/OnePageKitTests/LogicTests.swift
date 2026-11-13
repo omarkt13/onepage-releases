@@ -47,6 +47,15 @@ final class LogicTests: XCTestCase {
                        "CHAPTER I\nIt was a dark and stormy night.\nCHAPTER II\nThe end.\n")
     }
 
+    func testPathParts() {
+        XCTAssertEqual(PathParts.split("Books/My.Story.EPUB").base, "My.Story")
+        XCTAssertEqual(PathParts.split("Books/My.Story.EPUB").ext, "EPUB")
+        XCTAssertEqual(PathParts.split("README").ext, "")
+        XCTAssertEqual(PathParts.split(".hidden").base, ".hidden")
+        XCTAssertEqual(PathParts.directory("OEBPS/text/content.opf"), "OEBPS/text")
+        XCTAssertEqual(PathParts.directory("content.opf"), "")
+    }
+
     func testUnsupportedFormat() {
         XCTAssertThrowsError(try BookConverter.convert(fileName: "x.pdf", bytes: [1, 2, 3]))
     }
@@ -111,6 +120,7 @@ final class LogicTests: XCTestCase {
     func testWeatherMapping() {
         XCTAssertEqual(WeatherCode.fromWeatherKit("partlyCloudy"), .partlyCloudy)
         XCTAssertEqual(WeatherCode.fromWeatherKit("heavySnow"), .snow)
+        XCTAssertEqual(WeatherCode.fromWeatherKit("PartlyCloudy"), .partlyCloudy)
         XCTAssertEqual(WeatherCode.fromWeatherKit("somethingNew"), .unknown)
         XCTAssertEqual(HomeData.deci(-3.54), -35)
     }

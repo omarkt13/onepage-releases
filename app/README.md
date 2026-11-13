@@ -94,6 +94,6 @@ with Nordic's McuManager library. MCUboot checks its own image signature as well
 ## Open items
 
 1. **App Clip** (spec 4.1) is not built. A short test must first show whether an App Clip can complete Bluetooth pairing and the notification-sharing prompt.
-2. **Not compiled yet.** This code was written without access to Xcode or a Swift compiler. Expect a first round of small compile fixes. The places most likely to need one are the McuManager calls in `FirmwareUpdater.swift` (the library's API changed between versions; it is pinned from 1.6.0), and `WeatherCondition.rawValue` in `WeatherProvider.swift`.
+2. **Not compiled yet.** This code was written without access to Xcode or a Swift compiler. Expect a first round of small compile fixes. The places most likely to need one are the McuManager calls in `FirmwareUpdater.swift` (the library's API changed between versions; `project.yml` pins it to 1.6.x), and `WeatherCondition.rawValue` in `WeatherProvider.swift`.
 3. **Device ID print order.** The protocol says the device ID is "the low 4 bytes of FICR.DEVICEADDR, shown as 8 hex characters" without the byte order. The app prints the bytes as a little-endian `u32` (`%08X`) and accepts both orders when it matches an NFC link. Fix the order in `docs/protocol.md`.
 4. **Daylight-saving change inside the synced week.** Events use local wall-clock seconds, so an event after a clock change shows at its correct local time, but the device's "now" is one hour off until it next reads the iPhone's time.

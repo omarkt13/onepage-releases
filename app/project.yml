@@ -19,7 +19,9 @@ packages:
     path: OnePageKit
   McuManager:
     url: https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager
-    from: "1.6.0"
+    # Pinned to 1.6.x: FirmwareUpdater.swift is written against this API.
+    # Move to a newer minor only after a build and an update test on a device.
+    minorVersion: "1.6.0"
 
 targets:
   OnePageMini:

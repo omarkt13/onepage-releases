@@ -1,8 +1,8 @@
 import Foundation
 
 /// The device's book file (protocol section 6).
-public struct OPBBook: Equatable {
-    public struct Chapter: Equatable {
+public struct OPBBook: Equatable, Sendable {
+    public struct Chapter: Equatable, Sendable {
         public var textOffset: UInt32
         public var name: String
         public init(textOffset: UInt32, name: String) {

@@ -29,8 +29,28 @@ final class VectorTests: XCTestCase {
         return try XCTUnwrap([UInt8](hex: s), "bad hex in \(key)")
     }
 
+    /// JSON numbers arrive as NSNumber on Apple platforms and may arrive as
+    /// Int or Double from swift-corelibs-foundation on Linux.
+    static func number(_ x: Any?) -> Int? {
+        switch x {
+        case let i as Int: return i
+        case let d as Double: return Int(d)
+        case let n as NSNumber: return n.intValue
+        default: return nil
+        }
+    }
+
+    static func flag(_ x: Any?) -> Bool {
+        switch x {
+        case let b as Bool: return b
+        case let i as Int: return i != 0
+        case let n as NSNumber: return n.boolValue
+        default: return false
+        }
+    }
+
     func int(_ key: String, in d: [String: Any]) throws -> Int {
-        try XCTUnwrap((d[key] as? NSNumber)?.intValue, "missing \(key)")
+        try XCTUnwrap(Self.number(d[key]), "missing \(key)")
     }
 
     func str(_ key: String, in d: [String: Any]) throws -> String {
@@ -133,7 +153,8 @@ final class VectorTests: XCTestCase {
         let t = try XCTUnwrap(c["event_template"] as? [String: Any])
         let start = try int("start", in: t), step = try int("step", in: t), length = try int("length", in: t)
         let title = try str("title", in: t), place = try str("place", in: t)
-        let events = (0..<(try int("count", in: t))).map { i in
+        let count = try int("count", in: t)
+        let events = (0..<count).map { i in
             CalendarEvent(start: UInt32(start + i * step), end: UInt32(start + i * step + length),
                           allDay: false, title: title, place: place)
         }
@@ -149,7 +170,7 @@ final class VectorTests: XCTestCase {
         let input = try XCTUnwrap(c["events_in"] as? [[String: Any]])
         let events = try input.map { e in
             CalendarEvent(start: UInt32(try int("start", in: e)), end: UInt32(try int("end", in: e)),
-                          allDay: (e["all_day"] as? Bool) ?? false,
+                          allDay: Self.flag(e["all_day"]),
                           title: try str("title", in: e), place: (e["place"] as? String) ?? "")
         }
         let gen = UInt32(try int("generated_at", in: c))
@@ -164,7 +185,7 @@ final class VectorTests: XCTestCase {
         for (d, o) in zip(decoded.events, out) {
             XCTAssertEqual(d.title, try str("title", in: o))
             XCTAssertEqual(d.place, try str("place", in: o))
-            XCTAssertEqual(d.allDay, (o["all_day"] as? Bool) ?? false)
+            XCTAssertEqual(d.allDay, Self.flag(o["all_day"]))
         }
 
         let crc = CRC32.checksum(blob)
@@ -227,7 +248,7 @@ final class VectorTests: XCTestCase {
 
         let o = try dict("opb")
         let chapters = try XCTUnwrap(o["chapters"] as? [[Any]]).map { pair -> OPBBook.Chapter in
-            OPBBook.Chapter(textOffset: UInt32((pair[0] as! NSNumber).intValue), name: pair[1] as! String)
+            OPBBook.Chapter(textOffset: UInt32(Self.number(pair[0]) ?? 0), name: pair[1] as! String)
         }
         let book = OPBBook(title: try str("title", in: o), author: try str("author", in: o),
                            chapters: chapters, text: CP1252.encode(try str("in", in: c)))
