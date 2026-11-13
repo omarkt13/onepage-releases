@@ -67,7 +67,9 @@ firmware update, Battery (`0x180F`), Device Information (`0x180A`).
 Manufacturer data: `[company ID u16 = 0xFFFF][device_id: 4 bytes][flags u8]`.
 `0xFFFF` is the test company ID until a Bluetooth SIG member ID is assigned.
 `flags` bit 0 = `PAIRING`, bit 1 = `HAS_BOND`. `device_id` is the low 4 bytes of
-the chip's `FICR.DEVICEADDR`, shown as 8 upper-case hex characters.
+the chip's `FICR.DEVICEADDR[0]`, sent as a little-endian `u32`. The NFC link and
+the app show it as that `u32` in 8 upper-case hex characters (`%08X`), so the
+bytes `78 56 34 12` show as `12345678`.
 
 ## 4. NFC
 
@@ -247,7 +249,7 @@ Home data for weather, a full calendar sync for calendar.
 | `0x04` DELETE | `[ver][0x04][book_id u32]` | Delete a stored book |
 | `0x05` LIST | `[ver][0x05][start u16]` | List books |
 | `0x06` FINISH | `[ver][0x06][book_id u32]` | Check whole-file CRC-32 and store |
-| `0x07` FAST | `[ver][0x07][on u8]` | Ask for the shortest connection interval (on = 1) or return to idle (0) |
+| `0x07` FAST | `[ver][0x07][on u8]` | Ask for the shortest connection interval (on = 1) or return to idle (0). Valid at any time, also before a calendar sync. The device returns to idle by itself 30 s after the last FAST or transfer write |
 
 Device replies (notify):
 
