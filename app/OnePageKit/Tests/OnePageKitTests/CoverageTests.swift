@@ -84,6 +84,21 @@ final class CoverageTests: XCTestCase {
         XCTAssertThrowsError(try AppFilterReply(bytes: []))
     }
 
+    func testRoutineProgressConfirmsWithoutRewind() {
+        let file = [UInt8](repeating: 7, count: 1000)
+        var plan = TransferPlan(bookID: 9, file: file, maxWriteLength: 107) // 100-byte blocks
+        for _ in 0..<6 { _ = plan.nextBlock() } // 600 bytes in flight
+        plan.confirm(deviceOffset: 300)
+        XCTAssertEqual(plan.confirmedOffset, 300)
+        XCTAssertEqual(plan.nextOffset, 600) // no resend of blocks in flight
+        // A late, older report does not move progress back.
+        plan.confirm(deviceOffset: 200)
+        XCTAssertEqual(plan.confirmedOffset, 300)
+        // A bad-block report does rewind.
+        XCTAssertTrue(plan.apply(deviceOffset: 400))
+        XCTAssertEqual(plan.nextOffset, 400)
+    }
+
     func testPlanFollowsDeviceWhenPartialBookIsDiscarded() {
         let file = [UInt8](repeating: 7, count: 500)
         var plan = TransferPlan(bookID: 9, file: file, maxWriteLength: 107)

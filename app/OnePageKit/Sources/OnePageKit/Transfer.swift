@@ -159,4 +159,16 @@ public struct TransferPlan {
         if off > nextOffset { nextOffset = off }
         return false
     }
+
+    /// Applies a routine PROGRESS (status OK) that arrives while blocks are
+    /// still in flight. It confirms bytes but never rewinds: the device
+    /// reports every 32 blocks, and the app is normally ahead of that offset
+    /// by the blocks still queued. A rewind here would resend every block in
+    /// flight. Only a START or QUERY reply, or a bad-block PROGRESS, rewinds
+    /// (use `apply(deviceOffset:)` for those).
+    public mutating func confirm(deviceOffset: UInt32) {
+        let off = min(Int(deviceOffset), file.count)
+        confirmedOffset = max(confirmedOffset, off)
+        if off > nextOffset { nextOffset = off }
+    }
 }

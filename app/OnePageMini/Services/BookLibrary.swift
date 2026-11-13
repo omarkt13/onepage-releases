@@ -260,7 +260,10 @@ final class BookLibrary {
     private func apply(_ reply: TransferReply, to plan: inout TransferPlan, bookID: UInt32) throws {
         guard case let .progress(id, status, offset) = reply, id == bookID else { return }
         switch status {
-        case .ok, .badBlock: plan.apply(deviceOffset: offset)
+        // A routine report lags behind the blocks in flight: confirm only.
+        case .ok: plan.confirm(deviceOffset: offset)
+        // The device dropped a block and every block after it: resend from its offset.
+        case .badBlock: plan.apply(deviceOffset: offset)
         default: throw LinkError.rejected(status.message)
         }
     }

@@ -10,10 +10,10 @@ issue and all checks pass.
 
 | Item | Value |
 |---|---|
-| Last pass | 8 |
-| Next area | (c) firmware and app byte by byte (rotation 2) |
+| Last pass | 9 |
+| Next area | (d) Swift compile risk (rotation 2) |
 | Consecutive clean passes | 0 |
-| Passes left before the 12-pass limit | 4 |
+| Passes left before the 12-pass limit | 3 |
 
 Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and app byte by byte,
 (d) Swift compile risk, (e) firmware robustness, (f) test coverage and `docs/TESTING.md`.
@@ -30,6 +30,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 6 | (f) test coverage and `docs/TESTING.md` | 0 | 4 | 5 | 9 | No | 17a68cb |
 | 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
 | 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | 975d542 |
+| 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | (see log) |
 
 ## Open items
 
@@ -42,6 +43,9 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 5 | before loop | Display commands and waveforms, IQS7222A set-up, S25HL512T sector map, MAX17048 4.35 V model, LRA voltages (`TODO(datasheet)`) | Datasheets |
 | 6 | before loop | The app was never compiled. Pass 4 read every Swift file and fixed the compile risks it found (`docs/review/pass-4.md`). A real build, `swift test` and the McuManager 1.6 API check still need Xcode | A Mac with Xcode 15.4 or later: `docs/TESTING.md` steps A1–A8 |
 | 9 | 3 | A late calendar DATA failure can be read as the COMMIT reply; the sync fails and the next sync repairs it (pass-3 L3) | Bench test T-CAL-7, then fix in the app |
+| 16 | 9 | Calendar resume never takes effect: each sync has a new version and `generated_at` (pass-9 L1) | Optional app change; small cost (≤ 16 KB) |
+| 17 | 9 | Late calendar DATA failures can use all 3 restarts (pass-9 L2) | Fix together with item 9 |
+| 18 | 9 | The CANCEL reply can be read as the DELETE reply (pass-9 L3) | Optional app change; no wrong state |
 | 11 | 5 | `ble_set_fast` state is shared by three threads without a lock (pass-5 L3) | Accepted; bench test T-PWR-7 |
 | 12 | 5 | A page turn can read a just-deleted book once before the reader closes (pass-5 L4) | Bench test T-BOOK-6 |
 | 13 | 5 | Thread stack sizes set by reading only; RAM at 85 % (pass-5 L5) | Bench test T-PWR-6 (`build-stack`) |
@@ -68,4 +72,5 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | No bench test plan; 7-day rule not testable on the bench; no manifest signing tool | Pass 6: `docs/TESTING.md`, bench Kconfig `ONEPAGE_TEST_AWAY_ERASE_MIN`, `shared/tools/make_manifest.py` |
 | Reading position lost at power off; second discovery on a key refresh; no on-screen 10% warning | Pass 7: `app_power_off()` saves the position first; discovery runs once per connection; Home shows "charge soon" |
 | Phone alerted "update available" for the same version up to hourly; reconnection sync sent twice; stale PROGRESS after QUERY | Pass 8: one alert per version; the app ignores the reconnection data request because `onReady` covers it; largest offset after QUERY |
+| Routine PROGRESS made the app resend every block in flight; background reconnection had no background time | Pass 9: `TransferPlan.confirm()` for status OK; `deviceBecameReady()` holds a `BackgroundActivity` |
 | Where the source goes | The user chose to push to this repository, `omarkt13/onepage-releases`, branch `claude/magical-edison-9m5j8x` |

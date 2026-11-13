@@ -48,6 +48,11 @@ final class AppModel {
 
     @MainActor
     private func deviceBecameReady() async {
+        // A reconnection often wakes the app in the background. The device's
+        // reconnection data request is ignored (see `handle`), so this path
+        // must ask iOS for the background time itself.
+        let activity = BackgroundActivity(name: "OnePageReconnect")
+        defer { activity.end() }
         if calendar.isOn { await calendar.sync() }
         if weather.isOn { await weather.sendNow(foreground: UIApplication.shared.applicationState == .active) }
         library.sendPending()
