@@ -29,3 +29,7 @@ add_test(NAME vectors COMMAND test_vectors)
 add_executable(test_behaviour test_behaviour.c)
 target_link_libraries(test_behaviour opcore harness)
 add_test(NAME behaviour COMMAND test_behaviour)
+
+add_executable(test_coverage test_coverage.c)
+target_link_libraries(test_coverage opcore harness)
+add_test(NAME coverage COMMAND test_coverage)

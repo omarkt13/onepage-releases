@@ -82,6 +82,13 @@ bool cal_get(const struct cal_store *c, uint16_t i, struct cal_event *e);
 uint16_t cal_first_current(const struct cal_store *c, uint32_t now);
 /* Number of events that have not ended at `now`. */
 uint16_t cal_current_count(const struct cal_store *c, uint32_t now);
+/*
+ * Index of the k-th event (from 0) that has not ended at `now`, or count if
+ * none. Events are in start order, so an ended short event can follow a long
+ * one that is still running (for example an all-day event): screens must
+ * walk with this, not with cal_first_current() + k.
+ */
+uint16_t cal_current_nth(const struct cal_store *c, uint32_t now, uint16_t k);
 /* The next event (in progress or upcoming, not all-day first) for Home. */
 bool cal_next_event(const struct cal_store *c, uint32_t now, struct cal_event *e);
 

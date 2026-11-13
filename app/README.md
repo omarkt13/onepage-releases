@@ -63,6 +63,11 @@ which also runs the package tests.
 signature, then the size and SHA-256 of the download, then sends the MCUboot image
 with Nordic's McuManager library. MCUboot checks its own image signature as well.
 
+Make the key pair and each release manifest with
+`shared/tools/make_manifest.py` (`keygen`, `sign`, `verify`). The test fixture
+`OnePageKit/Tests/OnePageKitTests/Fixtures/manifest-test.json` comes from its
+`test-fixture` command and uses a fixed test key that must never sign a release.
+
 ## Module map
 
 | Path | Job |

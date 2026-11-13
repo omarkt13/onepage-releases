@@ -328,8 +328,7 @@ static void event_time(const struct cal_event *e, char *buf, size_t cap)
 static void draw_calendar(void)
 {
 	uint32_t now = clock_now();
-	uint16_t first_ev = cal_first_current(&g_app.cal, now);
-	uint16_t n = cal_count(&g_app.cal) - first_ev;
+	uint16_t n = cal_current_count(&g_app.cal, now);
 	uint16_t sel = g_app.nav.sel[UI_CALENDAR];
 	const int row_h = 2 * font_ui.height + ROW_PAD;
 	int y = HEADER_H + 12;
@@ -347,7 +346,7 @@ static void draw_calendar(void)
 	for (uint16_t i = start; i < n && y < FOOTER_Y - row_h; i++) {
 		struct cal_event e;
 
-		cal_get(&g_app.cal, first_ev + i, &e);
+		cal_get(&g_app.cal, cal_current_nth(&g_app.cal, now, i), &e);
 		uint32_t d = op_time_day(e.start < now && now ? now : e.start);
 
 		if (d != day) {
@@ -388,7 +387,7 @@ static void draw_cal_detail(void)
 	int y = DETAIL_TOP;
 
 	header("Event");
-	if (!cal_get(&g_app.cal, cal_first_current(&g_app.cal, now) + g_app.nav.detail, &e)) {
+	if (!cal_get(&g_app.cal, cal_current_nth(&g_app.cal, now, g_app.nav.detail), &e)) {
 		return;
 	}
 	op_utf8_to_cp1252(e.title, e.title_len, text, sizeof(text));

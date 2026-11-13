@@ -31,6 +31,15 @@ config ONEPAGE_UNSECURED_TIMEOUT_S
 	int "Disconnect a link that is not encrypted after this many seconds"
 	default 15
 
+config ONEPAGE_TEST_AWAY_ERASE_MIN
+	int "BENCH ONLY: erase the calendar after this many minutes away"
+	default 0
+	help
+	  0 (the default) keeps the 7-day rule. A value above 0 replaces it
+	  and saves the time away every minute, so docs/TESTING.md can check
+	  the erase and the restart-while-away rule in minutes. Never ship a
+	  build with this set.
+
 endmenu
 
 source "Kconfig.zephyr"

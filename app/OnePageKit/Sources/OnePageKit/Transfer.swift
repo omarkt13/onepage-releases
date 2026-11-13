@@ -122,7 +122,8 @@ public struct TransferPlan {
     public let file: [UInt8]
     public let blockSize: Int
     public private(set) var nextOffset: Int = 0
-    /// Highest offset the device has confirmed.
+    /// The offset the device last confirmed. The device is the authority: if it
+    /// discarded a partial book (a new START replaces it), this goes back too.
     public private(set) var confirmedOffset: Int = 0
 
     public init(bookID: UInt32, file: [UInt8], maxWriteLength: Int) {
@@ -150,7 +151,7 @@ public struct TransferPlan {
     @discardableResult
     public mutating func apply(deviceOffset: UInt32) -> Bool {
         let off = min(Int(deviceOffset), file.count)
-        confirmedOffset = max(confirmedOffset, off)
+        confirmedOffset = off
         if off < nextOffset {
             nextOffset = off
             return true

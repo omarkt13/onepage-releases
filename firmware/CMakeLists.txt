@@ -36,3 +36,9 @@ target_sources(app PRIVATE
   src/ui/screens.c
   src/ui/fonts_generated.c
 )
+
+if(CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN GREATER 0)
+  message(WARNING "BENCH BUILD: phone-away erase after ${CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN} min. Do not ship.")
+  math(EXPR ONEPAGE_AWAY_ERASE_MS "${CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN} * 60000")
+  target_compile_definitions(app PRIVATE PRIV_ERASE_DELAY_MS=${ONEPAGE_AWAY_ERASE_MS}ull)
+endif()

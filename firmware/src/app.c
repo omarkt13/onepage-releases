@@ -31,7 +31,12 @@ LOG_MODULE_REGISTER(app, LOG_LEVEL_INF);
 
 #define BATTERY_POLL_MS (5 * 60 * 1000)
 #define POSITION_SAVE_PAGES 20
+#if CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN > 0
+/* Bench build: save the time away every minute so a restart test is short. */
+#define AWAY_SAVE_STEP_MS (60u * 1000u)
+#else
 #define AWAY_SAVE_STEP_MS (60u * 60u * 1000u)
+#endif
 /* The loop wakes at least every BATTERY_POLL_MS (5 min). A full refresh, a
  * book delete or a flash erase can block it for some seconds more.
  */

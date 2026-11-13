@@ -13,7 +13,10 @@ extern "C" {
 #endif
 
 #define PRIV_LOCK_DELAY_MS (2u * 60u * 1000u)
+/* Bench builds can shorten this (CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN). */
+#ifndef PRIV_ERASE_DELAY_MS
 #define PRIV_ERASE_DELAY_MS (7ull * 24u * 3600u * 1000u)
+#endif
 
 enum priv_action {
 	PRIV_ACT_NONE = 0,

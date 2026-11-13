@@ -81,7 +81,10 @@ void cal_erase(struct cal_store *c)
 	c->version = 0;
 	c->generated_at = 0;
 	c->staging = false;
+	c->stage_received = 0;
 	memset(c->blob, 0, sizeof(c->blob));
+	/* A partial sync can hold event text too. */
+	memset(c->stage, 0, sizeof(c->stage));
 }
 
 static struct cal_result res(uint8_t status, uint32_t version, uint32_t next)
@@ -197,6 +200,22 @@ uint16_t cal_current_count(const struct cal_store *c, uint32_t now)
 		}
 	}
 	return n;
+}
+
+uint16_t cal_current_nth(const struct cal_store *c, uint32_t now, uint16_t k)
+{
+	struct cal_event e;
+
+	for (uint16_t i = 0; i < c->count; i++) {
+		cal_get(c, i, &e);
+		if (e.end > now) {
+			if (k == 0) {
+				return i;
+			}
+			k--;
+		}
+	}
+	return c->count;
 }
 
 bool cal_next_event(const struct cal_store *c, uint32_t now, struct cal_event *out)

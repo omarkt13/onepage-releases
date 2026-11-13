@@ -39,6 +39,13 @@ checks the same file, so the two sides cannot drift apart unnoticed.
 `test_behaviour` covers phone-away timing, transfer resume, calendar atomic
 swap, app-filter eviction, the notification list, gestures, navigation,
 quiet hours, the data-request schedule and the clock.
+`test_coverage` covers damaged calendar and book files, the calendar list
+while an all-day event runs, UTF-8 edge cases, reader paging past its
+history, the schedule after a disconnect, and small reply encoders.
+
+Bench tests: [`../docs/TESTING.md`](../docs/TESTING.md). For the phone-away
+erase test, `-Dfirmware_CONFIG_ONEPAGE_TEST_AWAY_ERASE_MIN=10` makes a bench
+build that erases after 10 minutes in place of 7 days. Never ship it.
 
 ### Memory (last build)
 
