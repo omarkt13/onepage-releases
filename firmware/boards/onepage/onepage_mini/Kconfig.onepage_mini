@@ -1,4 +1,4 @@
-# OnePage Mini: nRF54L15 in a Raytac AN54LV-15 module.
+# OnePage Mini: nRF54L15 in a Raytac AN54LQ-15 module.
 
 config BOARD_ONEPAGE_MINI
 	select SOC_NRF54L15_CPUAPP if BOARD_ONEPAGE_MINI_NRF54L15_CPUAPP

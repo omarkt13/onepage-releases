@@ -133,7 +133,7 @@ All in `boards/onepage/onepage_mini/`:
 | NFC domain `onepage.app` | `CONFIG_ONEPAGE_NFC_URL_HOST` |
 | Bluetooth company ID `0xFFFF` (test ID) | `src/ble/ble_core.c` |
 | MCUboot signing key (development key now) | `sysbuild.conf` |
-| Component list names the module "AN54LV-15"; the spec says "AN54LQ-15". The board assumes an nRF54L15 SoC either way | board files |
+| Module is the Raytac AN54LQ-15 (decided 13 Nov 2026). Check its 32.768 kHz crystal and load capacitors against the Raytac datasheet | board files |
 
 ## Deviations from the specs
 

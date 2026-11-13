@@ -33,7 +33,7 @@ Across all passes: 0 high, 24 medium, 48 low findings; 59 fixed. The rest are op
 2. **Needs a Mac build:** item 6 (first compile, McuManager 1.6 API), item 14
    (run the Swift tests). Optional app changes: items 16, 18.
 3. **Needs user decisions:** see "Decisions needed from the user" below:
-   module LV or LQ, domain, Bluetooth company ID, firmware and manifest
+   domain, Bluetooth company ID, firmware and manifest
    signing keys with the manifest URL (also closes item 15), calendar
    default when the phone is away.
 4. **Bench tests:** items 1 (T-PWR-3), 2 (T-PWR-4), 3 (T-NOT-8), 9 and 17
@@ -110,13 +110,14 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 
 | # | Decision |
 |---|---|
-| 1 | MCU module: AN54LV-15 (component list) or AN54LQ-15 (spec) |
 | 2 | Domain for the NFC link and universal links (now `onepage.app`) |
 | 3 | Bluetooth SIG company ID (now the test ID `0xFFFF`) |
 | 4 | Firmware signing keys (MCUboot now uses the development key) and the update manifest URL |
 | 5 | Calendar visible by default when the phone is away (now: on) |
 
 ## Resolved
+
+- MCU module: Raytac AN54LQ-15 (user decision, 13 Nov 2026). Board files updated. The component list footprint (8.4 × 6.4 mm, AN54LV-15) must change to the LQ-15 footprint.
 
 | Item | Resolution |
 |---|---|

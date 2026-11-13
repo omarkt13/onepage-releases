@@ -1,6 +1,6 @@
 /*
  * OnePage Mini, application core of the nRF54L15
- * (Raytac AN54LV-15 module). Parts follow the component list; pins are
+ * (Raytac AN54LQ-15 module). Parts follow the component list; pins are
  * placeholders marked TODO(pcb).
  */
 /dts-v1/;
