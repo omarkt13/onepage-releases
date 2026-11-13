@@ -20,9 +20,15 @@ static void result(struct xfer_reply *r, uint32_t id, uint8_t status)
 
 static void start(struct xfer *x, const struct op_xfer_cmd *c, struct xfer_reply *r)
 {
+	/*
+	 * One phone is the only writer, so the newest START wins: a partial book
+	 * with another id is discarded instead of answering "busy". This stops an
+	 * abandoned transfer (the user deleted the book on the phone) from
+	 * blocking every later book.
+	 */
 	if (x->active && x->book_id != c->book_id) {
-		progress(r, c->book_id, OP_XFER_BUSY, 0);
-		return;
+		x->io->discard(x->io->ctx, x->book_id);
+		x->active = false;
 	}
 	uint32_t resume = 0;
 	uint8_t st = x->io->open(x->io->ctx, c->book_id, c->total_len, c->crc32, c->title,

@@ -424,10 +424,32 @@ static void notify_thread(void)
 	}
 }
 
+/*
+ * Writes queued blocks. With yield_to_ctrl it stops as soon as a command
+ * waits, so CANCEL is not held behind a long stream of blocks.
+ */
+static void drain_blocks(bool yield_to_ctrl)
+{
+	struct block_item b;
+	struct xfer_reply r;
+	uint32_t n = k_msgq_num_used_get(&block_q);
+
+	/* Without yielding, write only what was queued on entry. */
+	while ((yield_to_ctrl ? k_msgq_num_used_get(&ctrl_q) == 0 : n-- > 0) &&
+	       k_msgq_get(&block_q, &b, K_NO_WAIT) == 0) {
+		struct op_xfer_block blk;
+
+		if (op_xfer_block_parse(&blk, b.data, b.len) != OP_PARSE_OK) {
+			continue;
+		}
+		xfer_block(&xfer, &blk, &r);
+		queue_notify(N_XFER, r.buf, r.len);
+	}
+}
+
 static void xfer_thread(void)
 {
 	struct ctrl_item c;
-	struct block_item b;
 	struct xfer_reply r;
 
 	xfer_init(&xfer, books_xfer_io());
@@ -440,6 +462,14 @@ static void xfer_thread(void)
 				xfer_suspend(&xfer);
 				ble_set_fast(false);
 				continue;
+			}
+			/*
+			 * QUERY and FINISH describe the blocks the app has already
+			 * sent, so the blocks queued before them are written first.
+			 * Otherwise QUERY reports an old offset and the app resends.
+			 */
+			if (c.cmd.op == OP_XFER_QUERY || c.cmd.op == OP_XFER_FINISH) {
+				drain_blocks(false);
 			}
 			if (c.cmd.op == OP_XFER_DELETE) {
 				int err = books_delete(c.cmd.book_id);
@@ -459,16 +489,7 @@ static void xfer_thread(void)
 			}
 			queue_notify(N_XFER, r.buf, r.len);
 		}
-		while (k_msgq_num_used_get(&ctrl_q) == 0 &&
-		       k_msgq_get(&block_q, &b, K_NO_WAIT) == 0) {
-			struct op_xfer_block blk;
-
-			if (op_xfer_block_parse(&blk, b.data, b.len) != OP_PARSE_OK) {
-				continue;
-			}
-			xfer_block(&xfer, &blk, &r);
-			queue_notify(N_XFER, r.buf, r.len);
-		}
+		drain_blocks(true);
 		if (k_msgq_num_used_get(&ctrl_q) || k_msgq_num_used_get(&block_q)) {
 			k_sem_give(&xfer_sem);
 		}

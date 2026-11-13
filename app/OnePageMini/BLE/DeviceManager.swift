@@ -419,9 +419,28 @@ final class DeviceManager: NSObject {
         forgetDevice()
     }
 
+    /// Sends FAST on or off once. Calendar sync, book transfer and firmware
+    /// update can overlap, so they use `acquireFastLink` and `releaseFastLink`
+    /// instead: FAST off goes out only when the last user stops.
     @MainActor
     func setFastLink(_ on: Bool) async {
         try? await write(TransferCommand.fast(on).encode(), to: Self.transferControlUUID)
+    }
+
+    @ObservationIgnored private var fastLinkHolds = 0
+
+    @MainActor
+    func acquireFastLink() async {
+        fastLinkHolds += 1
+        await setFastLink(true)
+    }
+
+    @MainActor
+    func releaseFastLink() async {
+        fastLinkHolds = max(0, fastLinkHolds - 1)
+        if fastLinkHolds == 0 {
+            await setFastLink(false)
+        }
     }
 
     // MARK: Notifications from the device

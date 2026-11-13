@@ -285,6 +285,55 @@ static void test_calendar(void)
 	free(blob);
 }
 
+/* The largest blob the app sends: the device must accept it whole. */
+static void test_calendar_cap(void)
+{
+	static uint8_t blob[CAL_MAX_BLOB];
+	uint32_t start = (uint32_t)mj_num(V, "calendar_cap.event_template.start");
+	uint32_t step = (uint32_t)mj_num(V, "calendar_cap.event_template.step");
+	uint32_t length = (uint32_t)mj_num(V, "calendar_cap.event_template.length");
+	const char *title = mj_str(V, "calendar_cap.event_template.title");
+	const char *place = mj_str(V, "calendar_cap.event_template.place");
+	uint16_t want = (uint16_t)mj_num(V, "calendar_cap.expected_count");
+	size_t tl = strlen(title), pl = strlen(place), pos = 6;
+
+	blob[0] = 0;
+	for (int i = 0; i < 4; i++) {
+		blob[i] = (uint8_t)((uint32_t)mj_num(V, "calendar_cap.generated_at") >> (8 * i));
+	}
+	blob[4] = (uint8_t)want;
+	blob[5] = (uint8_t)(want >> 8);
+	for (uint16_t e = 0; e < want; e++) {
+		uint32_t s0 = start + e * step, e0 = s0 + length;
+
+		for (int i = 0; i < 4; i++) {
+			blob[pos + i] = (uint8_t)(s0 >> (8 * i));
+			blob[pos + 4 + i] = (uint8_t)(e0 >> (8 * i));
+		}
+		blob[pos + 8] = 0;
+		pos += 9;
+		blob[pos++] = (uint8_t)tl;
+		memcpy(blob + pos, title, tl);
+		pos += tl;
+		blob[pos++] = (uint8_t)pl;
+		memcpy(blob + pos, place, pl);
+		pos += pl;
+	}
+	CHECK_EQ(pos, mj_num(V, "calendar_cap.blob_len"));
+	uint32_t crc = op_crc32(0, blob, pos);
+
+	CHECK_EQ(crc, (uint32_t)mj_num(V, "calendar_cap.crc32"));
+	cal_init(&cal);
+	CHECK_EQ(cal_begin(&cal, 9, (uint32_t)pos, crc).status, OP_CAL_OK);
+	for (size_t off = 0; off < pos; off += 238) {
+		size_t n = pos - off < 238 ? pos - off : 238;
+
+		CHECK_EQ(cal_data(&cal, (uint32_t)off, blob + off, n).status, OP_CAL_OK);
+	}
+	CHECK_EQ(cal_commit(&cal, 9).status, OP_CAL_OK);
+	CHECK_EQ(cal_count(&cal), want);
+}
+
 static void test_data_request(void)
 {
 	const struct mj *arr = mj_get(V, "data_request");
@@ -497,6 +546,7 @@ int main(void)
 		{"app_filter", test_app_filter},
 		{"home_data", test_home_data},
 		{"calendar", test_calendar},
+		{"calendar_cap", test_calendar_cap},
 		{"data_request", test_data_request},
 		{"privacy_codec", test_privacy_codec},
 		{"transfer_codec", test_transfer_codec},

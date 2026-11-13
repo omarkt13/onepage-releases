@@ -188,7 +188,8 @@ DATA that fails:
 `status`: 0 OK, 1 out-of-order offset (app restarts from `next_offset`),
 2 CRC or length mismatch at COMMIT, 3 too large, 4 bad blob content, 5 no BEGIN.
 
-`total_len` is at most 16384. DATA chunks may be any size up to ATT MTU − 3 − 6.
+`total_len` is at most 16384. When the week does not fit, the app leaves out the
+latest events (the reference encoder and the `calendar_cap` vector show the rule). DATA chunks may be any size up to ATT MTU − 3 − 6.
 
 Blob layout:
 
@@ -260,8 +261,11 @@ Device replies (notify):
 | `0x86` RESULT | `[ver][0x86][book_id u32][status u8]` |
 
 `status`: 0 OK, 1 out-of-order or bad block (resume from `next_offset`),
-2 whole-file CRC mismatch, 3 no space, 4 unknown book, 5 busy (another book
-in progress), 6 storage error.
+2 whole-file CRC mismatch, 3 no space, 4 unknown book, 5 busy (reserved: version 1 firmware does not send it), 6 storage error.
+
+The device keeps at most one partial book. A START for another book discards the
+partial one, because the phone is the only writer and its newest START wins. The
+device writes every block queued before a QUERY or FINISH before it answers.
 
 The device sends PROGRESS after START, after QUERY, after every 32 accepted
 blocks, and at the first rejected block after a run of good ones.

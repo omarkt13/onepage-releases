@@ -143,8 +143,8 @@ final class CalendarService {
     private func send(blob: [UInt8], version: UInt32, device: DeviceManager) async throws {
         let mailbox = device.calendarAcks
         mailbox.clear()
-        await device.setFastLink(true)
-        defer { Task { @MainActor in await device.setFastLink(false) } }
+        await device.acquireFastLink()
+        defer { Task { @MainActor in await device.releaseFastLink() } }
 
         let begin = CalendarCommand.begin(version: version, totalLength: UInt32(blob.count), crc32: CRC32.checksum(blob))
         try await device.write(begin.encode(), to: DeviceManager.calendarUUID)
@@ -152,7 +152,8 @@ final class CalendarService {
         guard ack.status == .ok else { throw LinkError.rejected(ack.status.message) }
 
         let chunk = max(1, device.maxWriteLength - CalendarCommand.dataOverhead)
-        var offset = 0
+        // The device resumes a staged copy with the same version, length and CRC.
+        var offset = Int(min(ack.nextOffset, UInt32(blob.count)))
         var restarts = 0
         while offset < blob.count {
             let end = min(blob.count, offset + chunk)

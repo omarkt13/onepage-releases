@@ -37,6 +37,8 @@ final class FirmwareUpdater: NSObject {
     /// during the upload (firmware spec section 8).
     @ObservationIgnored weak var device: DeviceManager?
     @ObservationIgnored private var fastLinkTask: Task<Void, Never>?
+    /// The device that holds a fast-link reference for this update.
+    @ObservationIgnored private var fastLinkDevice: DeviceManager?
 
     var isBusy: Bool {
         switch phase {
@@ -143,14 +145,16 @@ final class FirmwareUpdater: NSObject {
     /// command, so repeat it every 10 s while the update runs.
     @MainActor
     private func holdFastLink() {
-        fastLinkTask?.cancel()
+        guard fastLinkTask == nil, let held = device else { return }
         fastLinkTask = Task { @MainActor [weak self] in
+            await held.acquireFastLink()
             while !Task.isCancelled {
-                guard let device = self?.device else { return }
-                await device.setFastLink(true)
                 try? await Task.sleep(nanoseconds: 10_000_000_000)
+                guard !Task.isCancelled, let device = self?.device else { return }
+                await device.setFastLink(true) // keeps the device's 30 s timer running
             }
         }
+        fastLinkDevice = held
     }
 
     @MainActor
@@ -158,7 +162,8 @@ final class FirmwareUpdater: NSObject {
         if fastLinkTask != nil {
             fastLinkTask?.cancel()
             fastLinkTask = nil
-            if let device { Task { @MainActor in await device.setFastLink(false) } }
+            if let held = fastLinkDevice { Task { @MainActor in await held.releaseFastLink() } }
+            fastLinkDevice = nil
         }
         transport?.close()
         transport = nil

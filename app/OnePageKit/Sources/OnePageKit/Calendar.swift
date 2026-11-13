@@ -71,21 +71,29 @@ public enum CalendarBlob {
     public static let titleChars = 80, titleBytes = 160
     public static let placeChars = 60, placeBytes = 120
 
-    /// Builds the blob. Events are written in the given order, cut to 100.
+    /// Builds the blob. Events are written in the given order, cut to 100,
+    /// and cut again so the blob fits in `maxBlobBytes`: when the week has a
+    /// lot of long text, the latest events are left out, not the whole week.
     /// Use `prepare` first to sort and filter.
     public static func encode(generatedAt: UInt32, events: [CalendarEvent]) -> [UInt8] {
-        let list = Array(events.prefix(maxEvents))
-        var w = ByteWriter()
-        w.u32(generatedAt)
-        w.u16(UInt16(list.count))
-        for e in list {
+        var records: [[UInt8]] = []
+        var size = 6 // generated_at u32 + count u16
+        for e in events.prefix(maxEvents) {
+            var w = ByteWriter()
             w.u32(e.start)
             w.u32(e.end)
             w.u8(e.allDay ? 1 : 0)
             w.lstr(TextRules.truncate(e.title, maxChars: titleChars, maxBytes: titleBytes))
             w.lstr(TextRules.truncate(e.place, maxChars: placeChars, maxBytes: placeBytes))
+            guard size + w.bytes.count <= maxBlobBytes else { break }
+            size += w.bytes.count
+            records.append(w.bytes)
         }
-        return w.bytes
+        var out = ByteWriter()
+        out.u32(generatedAt)
+        out.u16(UInt16(records.count))
+        for r in records { out.append(r) }
+        return out.bytes
     }
 
     public static func decode(_ bytes: [UInt8]) throws -> (generatedAt: UInt32, events: [CalendarEvent]) {

@@ -227,6 +227,39 @@ static void close_part(void)
 	}
 }
 
+/* Removes partial books other than keep_id. Only one partial book is kept. */
+static void drop_other_partials(uint32_t keep_id)
+{
+	struct fs_dir_t dir;
+	struct fs_dirent ent;
+	uint32_t drop[8];
+	size_t n = 0;
+
+	fs_dir_t_init(&dir);
+	if (fs_opendir(&dir, DIR) != 0) {
+		return;
+	}
+	while (fs_readdir(&dir, &ent) == 0 && ent.name[0] && n < ARRAY_SIZE(drop)) {
+		if (strlen(ent.name) == 12 && strcmp(ent.name + 8, ".pin") == 0) {
+			uint32_t id = (uint32_t)strtoul(ent.name, NULL, 16);
+
+			if (id != keep_id) {
+				drop[n++] = id;
+			}
+		}
+	}
+	fs_closedir(&dir);
+	for (size_t i = 0; i < n; i++) {
+		char p[32];
+
+		path(p, sizeof(p), drop[i], "prt");
+		(void)fs_unlink(p);
+		path(p, sizeof(p), drop[i], "pin");
+		(void)fs_unlink(p);
+		LOG_INF("book %08x: dropped partial transfer", drop[i]);
+	}
+}
+
 static uint8_t io_open(void *ctx, uint32_t id, uint32_t total, uint32_t crc, const char *title,
 		       uint32_t *resume_at)
 {
@@ -240,6 +273,7 @@ static uint8_t io_open(void *ctx, uint32_t id, uint32_t total, uint32_t crc, con
 		return OP_XFER_STORAGE;
 	}
 	close_part();
+	drop_other_partials(id);
 	*resume_at = 0;
 	path(p, sizeof(p), id, "prt");
 

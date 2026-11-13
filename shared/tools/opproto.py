@@ -75,14 +75,25 @@ def app_filter_entry(mode, pattern, flags, ident):
     return bytes([mode, pattern, flags, len(b)]) + b
 
 
+CAL_MAX_EVENTS = 100
+CAL_MAX_BLOB = 16384
+
+
 def calendar_blob(generated_at, events):
-    out = bytearray(u32(generated_at) + u16(len(events)))
-    for e in events:
+    """At most 100 events, and only as many as fit in 16384 bytes: when the
+    week has a lot of long text the latest events are left out."""
+    records = []
+    size = 6
+    for e in events[:CAL_MAX_EVENTS]:
         title = truncate(e["title"], 80, 160)
         place = truncate(e.get("place", ""), 60, 120)
-        out += u32(e["start"]) + u32(e["end"]) + u8(1 if e.get("all_day") else 0)
-        out += lstr(title) + lstr(place)
-    return bytes(out)
+        rec = u32(e["start"]) + u32(e["end"]) + u8(1 if e.get("all_day") else 0)
+        rec += lstr(title) + lstr(place)
+        if size + len(rec) > CAL_MAX_BLOB:
+            break
+        size += len(rec)
+        records.append(rec)
+    return u32(generated_at) + u16(len(records)) + b"".join(records)
 
 
 def transfer_block(offset, data):
@@ -214,6 +225,19 @@ def build_vectors():
         "data_first_bytes": hx(bytes([VERSION, 0x02]) + u32(0) + blob[:100]),
         "commit_bytes": hx(bytes([VERSION, 0x03]) + u32(7)),
         "ack_ok_bytes": hx(bytes([VERSION, 0x80, 0]) + u32(7) + u32(len(blob))),
+    }
+
+    # 100 events with the longest text: only the first ones fit in 16384 bytes.
+    big = [{"start": 847000000 + i * 600, "end": 847000000 + i * 600 + 300,
+            "title": "é" * 80, "place": "ü" * 60} for i in range(100)]
+    big_blob = calendar_blob(847000100, big)
+    v["calendar_cap"] = {
+        "generated_at": 847000100,
+        "event_template": {"start": 847000000, "step": 600, "length": 300,
+                           "title": "é" * 80, "place": "ü" * 60, "count": 100},
+        "expected_count": struct.unpack_from("<H", big_blob, 4)[0],
+        "blob_len": len(big_blob),
+        "crc32": crc32(big_blob),
     }
 
     v["truncate"] = [

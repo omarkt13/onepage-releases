@@ -182,8 +182,8 @@ final class BookLibrary {
         update(bookID) { $0.state = .sending; $0.failure = nil }
         let replies = device.transferReplies
         replies.clear()
-        await device.setFastLink(true)
-        defer { Task { @MainActor in await device.setFastLink(false) } }
+        await device.acquireFastLink()
+        defer { Task { @MainActor in await device.releaseFastLink() } }
 
         var plan = TransferPlan(bookID: bookID, file: [UInt8](data), maxWriteLength: device.maxWriteLength)
         do {

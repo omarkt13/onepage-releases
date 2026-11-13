@@ -128,6 +128,22 @@ final class VectorTests: XCTestCase {
         XCTAssertEqual(try HomeData(bytes: raw), d)
     }
 
+    func testCalendarCap() throws {
+        let c = try dict("calendar_cap")
+        let t = try XCTUnwrap(c["event_template"] as? [String: Any])
+        let start = try int("start", in: t), step = try int("step", in: t), length = try int("length", in: t)
+        let title = try str("title", in: t), place = try str("place", in: t)
+        let events = (0..<(try int("count", in: t))).map { i in
+            CalendarEvent(start: UInt32(start + i * step), end: UInt32(start + i * step + length),
+                          allDay: false, title: title, place: place)
+        }
+        let blob = CalendarBlob.encode(generatedAt: UInt32(try int("generated_at", in: c)), events: events)
+        XCTAssertEqual(blob.count, try int("blob_len", in: c))
+        XCTAssertLessThanOrEqual(blob.count, CalendarBlob.maxBlobBytes)
+        XCTAssertEqual(Int(CRC32.checksum(blob)), try int("crc32", in: c))
+        XCTAssertEqual(try CalendarBlob.decode(blob).events.count, try int("expected_count", in: c))
+    }
+
     func testCalendar() throws {
         let c = try dict("calendar")
         let input = try XCTUnwrap(c["events_in"] as? [[String: Any]])

@@ -10,10 +10,10 @@ issue and all checks pass.
 
 | Item | Value |
 |---|---|
-| Last pass | 2 |
-| Next area | (c) firmware and app byte by byte |
+| Last pass | 3 |
+| Next area | (d) Swift compile risk |
 | Consecutive clean passes | 0 |
-| Passes left before the 12-pass limit | 10 |
+| Passes left before the 12-pass limit | 9 |
 
 Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and app byte by byte,
 (d) Swift compile risk, (e) firmware robustness, (f) test coverage and `docs/TESTING.md`.
@@ -23,7 +23,8 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | Pass | Area | High | Medium | Low | Fixed | Clean | Commit |
 |---|---|---|---|---|---|---|---|
 | 1 | (a) firmware against specs | 0 | 2 | 4 | 3 | No | 88136f1 |
-| 2 | (b) app against specs | 0 | 3 | 4 | 5 | No | see git log |
+| 2 | (b) app against specs | 0 | 3 | 4 | 5 | No | 48ac5b7 |
+| 3 | (c) firmware and app byte by byte | 0 | 3 | 4 | 5 | No | see git log |
 
 ## Open items
 
@@ -35,8 +36,9 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 4 | before loop | All pins and crystal capacitors on the custom board (`TODO(pcb)`) | PCB design |
 | 5 | before loop | Display commands and waveforms, IQS7222A set-up, S25HL512T sector map, MAX17048 4.35 V model, LRA voltages (`TODO(datasheet)`) | Datasheets |
 | 6 | before loop | The app was never compiled | A Mac with Xcode |
-| 7 | 2 | A broken transfer of a book that the user then deletes on the phone can block the next book with "busy" (pass-2 L3) | Decide in pass (c): firmware drops the partial book on a new START, or the app sends CANCEL |
 | 8 | 2 | Firmware does not ask for the fast interval on SMP traffic; only the app's FAST keeps an update fast (pass-2 L4) | Fix in pass (e) |
+| 9 | 3 | A late calendar DATA failure can be read as the COMMIT reply; the sync fails and the next sync repairs it (pass-3 L3) | Bench test, then fix in the app |
+| 10 | 3 | DELETE of the book that is now receiving leaves the transfer active on a deleted file (pass-3 L4) | Fix in pass (e) |
 
 ## Decisions needed from the user
 
@@ -52,4 +54,5 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 
 | Item | Resolution |
 |---|---|
+| Interrupted book transfer blocks the next book with "busy" (open item 7) | Pass 3: the newest START wins; the firmware discards the other partial book |
 | Where the source goes | The user chose to push to this repository, `omarkt13/onepage-releases`, branch `claude/magical-edison-9m5j8x` |

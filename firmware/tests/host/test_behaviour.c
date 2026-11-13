@@ -240,13 +240,6 @@ static void test_transfer_resume(void)
 	xfer_command(&x, &c, &r);
 	CHECK_EQ(reply_next(&r), off);
 
-	/* Another book while this one is in progress: busy. */
-	struct op_xfer_cmd other = c;
-
-	other.book_id = 78;
-	xfer_command(&x, &other, &r);
-	CHECK_EQ(reply_status(&r), OP_XFER_BUSY);
-
 	/* FINISH before the end is refused. */
 	struct op_xfer_cmd fin = {.op = OP_XFER_FINISH, .book_id = 77};
 
@@ -294,6 +287,25 @@ static void test_transfer_resume(void)
 	c.total_len = FAKE_MAX + 1;
 	xfer_command(&x, &c, &r);
 	CHECK_EQ(reply_status(&r), OP_XFER_NO_SPACE);
+
+	/* A START for another book while one is in progress: the newest wins. */
+	memset(&FS, 0, sizeof(FS));
+	c.total_len = sizeof(book);
+	c.crc32 = op_crc32(0, book, sizeof(book));
+	xfer_command(&x, &c, &r);
+	send_block(&x, book, 0, B, &r, false);
+	CHECK_EQ(FS.len, B);
+	struct op_xfer_cmd other = c;
+
+	other.book_id = 78;
+	xfer_command(&x, &other, &r);
+	CHECK_EQ(reply_status(&r), OP_XFER_OK);
+	CHECK_EQ(reply_next(&r), 0);
+	CHECK_EQ(FS.id, 78);
+	/* Blocks for the old book are now refused at the new book's offset. */
+	send_block(&x, book, B, B, &r, false);
+	CHECK_EQ(reply_status(&r), OP_XFER_BAD_BLOCK);
+	CHECK_EQ(reply_next(&r), 0);
 }
 
 /* ---- calendar --------------------------------------------------------------- */
