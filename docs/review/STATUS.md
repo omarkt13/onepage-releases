@@ -32,7 +32,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | 975d542 |
 | 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
 | 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | 00cf469 |
-| 11 | (e) firmware robustness | 0 | 2 | 4 | 6 | No | (this commit) |
+| 11 | (e) firmware robustness | 0 | 2 | 4 | 6 | No | b9baeaa |
 
 ## Open items
 
