@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import OnePageKit
 import SwiftUI
+import UIKit
 
 /// Wires the services together and answers the device's data requests.
 @Observable

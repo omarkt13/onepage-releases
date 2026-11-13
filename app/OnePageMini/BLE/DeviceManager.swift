@@ -551,12 +551,13 @@ extension DeviceManager: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        lastError = UserFacingError(title: "Could not connect",
-                                    message: "The device did not accept the connection. Keep it near the phone. If you pair for the first time, start pairing mode on the device again.")
         if peripheral.identifier == pairedPeripheralID {
+            // Automatic reconnection, often in the background: retry with no alert.
             state = .waitingForDevice
             central.connect(peripheral, options: nil)
         } else {
+            lastError = UserFacingError(title: "Could not connect",
+                                        message: "The device did not accept the connection. Keep it near the phone. If you pair for the first time, start pairing mode on the device again.")
             state = .idle
         }
     }
@@ -578,7 +579,13 @@ extension DeviceManager: CBCentralManagerDelegate {
 
 extension DeviceManager: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        guard error == nil, let service = peripheral.services?.first(where: { $0.uuid == Self.serviceUUID }) else {
+        if let error {
+            // A link drop or a security error, not a wrong device.
+            lastError = UserFacingError("Could not set up the device", error)
+            abandonSetup(peripheral)
+            return
+        }
+        guard let service = peripheral.services?.first(where: { $0.uuid == Self.serviceUUID }) else {
             lastError = UserFacingError(title: "This is not a OnePage Mini",
                                         message: "The device does not offer the OnePage service. Check that you picked the right device.")
             abandonSetup(peripheral)

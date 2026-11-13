@@ -10,10 +10,10 @@ issue and all checks pass.
 
 | Item | Value |
 |---|---|
-| Last pass | 9 |
-| Next area | (d) Swift compile risk (rotation 2) |
-| Consecutive clean passes | 0 |
-| Passes left before the 12-pass limit | 3 |
+| Last pass | 10 |
+| Next area | (e) firmware robustness (rotation 2) |
+| Consecutive clean passes | 1 |
+| Passes left before the 12-pass limit | 2 |
 
 Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and app byte by byte,
 (d) Swift compile risk, (e) firmware robustness, (f) test coverage and `docs/TESTING.md`.
@@ -31,6 +31,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
 | 8 | (b) app against specs | 0 | 1 | 4 | 5 | No | 975d542 |
 | 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
+| 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | (see git log) |
 
 ## Open items
 
@@ -72,5 +73,6 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | No bench test plan; 7-day rule not testable on the bench; no manifest signing tool | Pass 6: `docs/TESTING.md`, bench Kconfig `ONEPAGE_TEST_AWAY_ERASE_MIN`, `shared/tools/make_manifest.py` |
 | Reading position lost at power off; second discovery on a key refresh; no on-screen 10% warning | Pass 7: `app_power_off()` saves the position first; discovery runs once per connection; Home shows "charge soon" |
 | Phone alerted "update available" for the same version up to hourly; reconnection sync sent twice; stale PROGRESS after QUERY | Pass 8: one alert per version; the app ignores the reconnection data request because `onReady` covers it; largest offset after QUERY |
+| UIKit import implicit; wrong "not a OnePage Mini" message on a discovery error; alert on every automatic reconnection failure | Pass 10: explicit `import UIKit`; discovery errors show their cause; the paired device retries without an alert |
 | Routine PROGRESS made the app resend every block in flight; background reconnection had no background time | Pass 9: `TransferPlan.confirm()` for status OK; `deviceBecameReady()` holds a `BackgroundActivity` |
 | Where the source goes | The user chose to push to this repository, `omarkt13/onepage-releases`, branch `claude/magical-edison-9m5j8x` |

@@ -1,5 +1,6 @@
 import OnePageKit
 import SwiftUI
+import UIKit
 
 extension View {
     /// Shows a `UserFacingError`: what happened, and what to do next.
