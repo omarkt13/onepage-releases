@@ -14,6 +14,7 @@
 #include "core/op_time.h"
 #include "core/text.h"
 #include "drivers/epd.h"
+#include "power.h"
 #include "storage/books.h"
 #include "ui/gfx.h"
 
@@ -97,8 +98,14 @@ static void draw_home(const struct ui_ctx *ctx)
 
 	/* Status line: battery and phone. */
 	if (g_app.battery.gauge_ok) {
+		bool low = g_app.battery.charging == OP_CHG_NONE &&
+			   g_app.battery.percent <= BATTERY_WARN_PERCENT;
+
+		/* Spec section 9: warn at 10%, on the screen as well as by vibration. */
 		snprintf(buf, sizeof(buf), "%u%%%s", g_app.battery.percent,
-			 g_app.battery.charging == OP_CHG_CHARGING ? " charging" : "");
+			 g_app.battery.charging == OP_CHG_CHARGING ? " charging"
+			 : low					   ? " - charge soon"
+								   : "");
 		gfx_text(&font_ui, M, y, buf, strlen(buf));
 	}
 	const char *link = g_app.pairing_window ? "Pairing"

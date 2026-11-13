@@ -176,10 +176,10 @@ Make the manifest with `shared/tools/make_manifest.py sign` over
 | ID | Setup | Steps | Pass criteria |
 |---|---|---|---|
 | T-PWR-1 Idle current | PPK2 on the battery input, connected idle, screen still | Record 10 minutes at each interval (M-1) | Target 30 µA average at the long interval (firmware spec section 8) |
-| T-PWR-2 Shipping and away | Power menu > Power off; then a bonded device with the phone away | Record 5 minutes each | Off under 2 µA. Away (slow advertising) under 20 µA |
+| T-PWR-2 Shipping and away | Power menu > Power off; then a bonded device with the phone away | Record 5 minutes each | Off under 2 µA. The device stays off for the full 5 minutes: the watchdog does not wake it from System OFF. Away (slow advertising) under 20 µA |
 | T-PWR-3 LED timer (STATUS item 1) | Alert pattern on the LED with the CPU otherwise idle | Record the current during a blink pattern | Record the extra charge per pattern. If it is more than 10% of the idle budget per hour of normal use, move the LED to a hardware timer |
 | T-PWR-4 Display supply hold (STATUS item 2) | Refresh once, then idle | Record 3 minutes | Record the current during the 2-minute hold and after the supply is cut. Decide the hold time from M-4 and M-5 |
-| T-PWR-5 Battery levels | Adjustable supply in place of the cell | Lower the voltage | Warning at 10%. At 3% the "charge me" screen shows and the device turns off cleanly |
+| T-PWR-5 Battery levels | Adjustable supply in place of the cell | Lower the voltage | Warning at 10%: one vibration and "charge soon" on Home. At 3% the "charge me" screen shows and the device turns off cleanly. Repeat with a book open: after the restart the book opens at the same page. Also check Power menu > Power off with a book open |
 | T-PWR-6 Stacks (STATUS item 13) | `build-stack` | Run T-NOT-1, T-BOOK-1, T-CAL-1 and T-UPD-1 with the analyzer log on | Each thread keeps at least 25% of its stack unused. Record the values and reduce or increase stack sizes |
 | T-PWR-7 Fast-link state (STATUS item 11) | Connected | Run a book transfer, a calendar sync and an update check at the same time, 5 times | The link returns to the long interval within 30 s after the last task. No stuck fast interval (watch the PPK2 current) |
 | T-PWR-8 Watchdog | Debug build with a forced hang in the application thread | Trigger the hang | The device restarts after the watchdog time. The bond and settings are kept |

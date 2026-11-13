@@ -244,6 +244,13 @@ static void reader_close(void)
 	force_full = true; /* leaving the reader clears ghosting */
 }
 
+/* Saves the reading position, then switches off (power menu, or battery at 3%). */
+static void app_power_off(const char *title, const char *body)
+{
+	reader_close();
+	power_off(title, body);
+}
+
 static void reader_open_index(uint16_t index)
 {
 	struct op_book_info b;
@@ -369,7 +376,7 @@ static void do_action(const struct ui_result *r)
 	case UI_ACT_PAIR_NEW: open_pairing(); break;
 	case UI_ACT_ERASE_ALL: erase_all_and_restart(); break;
 	case UI_ACT_POWER_OFF:
-		power_off("Off", "Press the side button to switch on.");
+		app_power_off("Off", "Press the side button to switch on.");
 		break;
 	case UI_ACT_RESTART:
 		reader_close();
@@ -490,7 +497,7 @@ static void battery_check(void)
 	app_unlock();
 
 	if (chg == OP_CHG_NONE && pct <= BATTERY_OFF_PERCENT) {
-		power_off("Charge me", "The battery is empty. Connect the charger to switch on.");
+		app_power_off("Charge me", "The battery is empty. Connect the charger to switch on.");
 	}
 	if (chg == OP_CHG_NONE && pct <= BATTERY_WARN_PERCENT && !battery_warned) {
 		battery_warned = true;

@@ -267,6 +267,8 @@ const char *ble_device_id(void)
 enum disc_step { DISC_GATTP, DISC_ANCS, DISC_AMS, DISC_CTS, DISC_DONE };
 static enum disc_step disc_step;
 static bool ancs_found;
+/* Discovery runs once per connection, even if security changes again. */
+static bool disc_started;
 
 static void discover_next(struct bt_conn *conn);
 
@@ -419,6 +421,7 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
 	cur_conn = NULL;
 	fast_mode = false;
 	disc_step = DISC_GATTP;
+	disc_started = false;
 	ancs_found = false;
 	ancs_reset();
 	ams_reset();
@@ -442,8 +445,15 @@ static void security_changed(struct bt_conn *conn, bt_security_t level,
 	LOG_INF("security level %d", level);
 	if (level >= BT_SECURITY_L2 && conn == cur_conn) {
 		k_work_cancel_delayable(&unsecured_work);
-		disc_step = DISC_GATTP;
-		discover_next(conn);
+		/* A second security change (key refresh) must not start a second
+		 * discovery: that would subscribe ANCS twice and send a second
+		 * EVT_LINK_READY with its data requests.
+		 */
+		if (!disc_started) {
+			disc_started = true;
+			disc_step = DISC_GATTP;
+			discover_next(conn);
+		}
 	}
 }
 
