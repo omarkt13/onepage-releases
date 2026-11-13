@@ -226,6 +226,11 @@ static void idle_params_fn(struct k_work *work)
 	}
 }
 
+bool ble_is_fast(void)
+{
+	return fast_mode;
+}
+
 void ble_set_fast(bool fast)
 {
 	fast_mode = fast;

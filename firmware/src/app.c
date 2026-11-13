@@ -9,6 +9,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
+#include <zephyr/drivers/watchdog.h>
 
 #include "ble/ble.h"
 #include "clock.h"
@@ -31,6 +32,10 @@ LOG_MODULE_REGISTER(app, LOG_LEVEL_INF);
 #define BATTERY_POLL_MS (5 * 60 * 1000)
 #define POSITION_SAVE_PAGES 20
 #define AWAY_SAVE_STEP_MS (60u * 60u * 1000u)
+/* The loop wakes at least every BATTERY_POLL_MS (5 min). A full refresh, a
+ * book delete or a flash erase can block it for some seconds more.
+ */
+#define WDT_TIMEOUT_MS (10u * 60u * 1000u)
 
 struct app_state g_app;
 
@@ -113,6 +118,42 @@ static void erase_all_and_restart(void)
 	(void)epd_show(gfx_fb, EPD_FULL, 0, EPD_HEIGHT - 1);
 	sys_reboot(SYS_REBOOT_COLD);
 }
+
+/* ---- watchdog ------------------------------------------------------------------------ */
+
+#if DT_HAS_ALIAS(watchdog0) && DT_NODE_HAS_STATUS(DT_ALIAS(watchdog0), okay)
+static const struct device *const wdt = DEVICE_DT_GET(DT_ALIAS(watchdog0));
+static int wdt_channel = -1;
+
+static void wdt_start(void)
+{
+	struct wdt_timeout_cfg cfg = {
+		.window = {.min = 0, .max = WDT_TIMEOUT_MS},
+		.flags = WDT_FLAG_RESET_SOC,
+	};
+
+	if (!device_is_ready(wdt)) {
+		LOG_WRN("watchdog not ready");
+		return;
+	}
+	wdt_channel = wdt_install_timeout(wdt, &cfg);
+	/* Pause while a debugger halts the CPU; keep counting in sleep. */
+	if (wdt_channel < 0 || wdt_setup(wdt, WDT_OPT_PAUSE_HALTED_BY_DBG)) {
+		LOG_ERR("watchdog setup failed (%d)", wdt_channel);
+		wdt_channel = -1;
+	}
+}
+
+static void wdt_kick(void)
+{
+	if (wdt_channel >= 0) {
+		(void)wdt_feed(wdt, wdt_channel);
+	}
+}
+#else
+static void wdt_start(void) {}
+static void wdt_kick(void) {}
+#endif
 
 /* ---- rendering ------------------------------------------------------------------------ */
 
@@ -547,6 +588,28 @@ static void handle(const struct app_evt *e)
 		app_unlock();
 		force_full = true;
 		break;
+	case EVT_BOOKS:
+		/* A book deleted from the app may be the one open in the reader. */
+		if (g_reading.open) {
+			bool found = false;
+			struct op_book_info b;
+
+			for (uint16_t i = 0; i < books_count() && !found; i++) {
+				found = books_get(i, &b) && b.book_id == g_reading.book_id;
+			}
+			if (!found) {
+				LOG_INF("open book was deleted; closing the reader");
+				books_close();
+				g_reading.open = false;
+				force_full = true;
+				app_lock();
+				if (g_app.nav.screen == UI_READER) {
+					ui_nav_show(&g_app.nav, UI_LIBRARY);
+				}
+				app_unlock();
+			}
+		}
+		break;
 	case EVT_PAIRING_WINDOW_END:
 	case EVT_MUSIC:
 	case EVT_TIME_SET:
@@ -636,7 +699,9 @@ void app_run(void)
 	force_full = true;
 	render();
 
+	wdt_start();
 	for (;;) {
+		wdt_kick();
 		k_timeout_t wait = periodic();
 
 		if (k_msgq_get(&evt_q, &e, wait) == 0) {

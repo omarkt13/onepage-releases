@@ -150,3 +150,14 @@ void xfer_suspend(struct xfer *x)
 	x->active = false;
 	x->reject_reported = true;
 }
+
+bool xfer_forget(struct xfer *x, uint32_t book_id)
+{
+	if (!x->active || x->book_id != book_id) {
+		return false;
+	}
+	x->io->discard(x->io->ctx, book_id);
+	x->active = false;
+	x->reject_reported = true;
+	return true;
+}

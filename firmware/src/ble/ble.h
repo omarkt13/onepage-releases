@@ -19,6 +19,7 @@ bool ble_has_bond(void);
 void ble_remove_bonds(void);
 /* Shortest connection interval for transfers (true) or idle (false). */
 void ble_set_fast(bool fast);
+bool ble_is_fast(void);
 /* Current connection, or NULL. Not referenced: do not unref. */
 struct bt_conn *ble_conn(void);
 /* Usable ATT payload per notification (MTU - 3). */
@@ -51,6 +52,8 @@ int op_service_init(void);
 void op_service_notify_status(void);
 void op_service_data_request(uint8_t kind, uint8_t reason);
 void op_service_disconnected(void);
+/* Ask for the fast interval and keep it 30 s after the last call. */
+void op_service_fast_keepalive(void);
 
 int nfc_tag_init(const char *device_id);
 

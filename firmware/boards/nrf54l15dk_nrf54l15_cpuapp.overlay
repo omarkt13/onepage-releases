@@ -124,3 +124,6 @@
 	/delete-node/ cpuflpr_sram;
 	/delete-node/ cpuflpr_rram;
 };
+
+/* Watchdog, fed by the application thread (review pass 5). */
+&wdt31 { status = "okay"; };

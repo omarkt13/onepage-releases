@@ -758,12 +758,49 @@ static void test_alerts_and_schedule(void)
 	CHECK_EQ(cv.day, 29);
 }
 
+/* Pass 5: DELETE of the book now being received stops the transfer. */
+static void test_transfer_forget(void)
+{
+	static uint8_t book[200];
+	struct xfer x;
+	struct xfer_reply r;
+	struct op_xfer_cmd c = {0};
+
+	for (size_t i = 0; i < sizeof(book); i++) {
+		book[i] = (uint8_t)i;
+	}
+	memset(&FS, 0, sizeof(FS));
+	xfer_init(&x, &FIO);
+	c.op = OP_XFER_START;
+	c.book_id = 5;
+	c.total_len = sizeof(book);
+	c.crc32 = op_crc32(0, book, sizeof(book));
+	strcpy(c.title, "B");
+	xfer_command(&x, &c, &r);
+	send_block(&x, book, 0, 50, &r, false);
+	CHECK(FS.partial);
+	CHECK_EQ(FS.len, 50);
+
+	/* Another id: nothing happens. */
+	CHECK(!xfer_forget(&x, 6));
+	CHECK(FS.partial);
+	/* This id: the partial file is discarded and blocks are refused. */
+	CHECK(xfer_forget(&x, 5));
+	CHECK(!FS.partial);
+	CHECK_EQ(FS.len, 0);
+	CHECK(!xfer_forget(&x, 5));
+	send_block(&x, book, 50, 50, &r, false);
+	CHECK_EQ(FS.len, 0);
+	CHECK(r.len == 0 || reply_status(&r) != OP_XFER_OK);
+}
+
 int main(void)
 {
 	static const struct test_case cases[] = {
 		{"privacy_timing", test_privacy_timing},
 		{"privacy_restart", test_privacy_restart},
 		{"transfer_resume", test_transfer_resume},
+		{"transfer_forget", test_transfer_forget},
 		{"calendar_atomic_swap", test_calendar_swap},
 		{"filter_eviction", test_filter_eviction},
 		{"notif_list", test_notif_list},

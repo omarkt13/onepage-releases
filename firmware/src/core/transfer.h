@@ -60,6 +60,11 @@ void xfer_command(struct xfer *x, const struct op_xfer_cmd *c, struct xfer_reply
 void xfer_block(struct xfer *x, const struct op_xfer_block *b, struct xfer_reply *r);
 /* The link dropped: keep the partial file for resume, stop accepting blocks. */
 void xfer_suspend(struct xfer *x);
+/*
+ * DELETE of a book: if it is the book now being received, discard the
+ * partial file and stop the transfer. Returns true if it did that.
+ */
+bool xfer_forget(struct xfer *x, uint32_t book_id);
 
 #ifdef __cplusplus
 }

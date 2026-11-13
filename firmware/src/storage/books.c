@@ -199,10 +199,15 @@ int books_erase_all(void)
 		return -ENODEV;
 	}
 	books_close();
-	while (count) {
-		books_delete(index_[0].id);
+	/* Bounded: if a file cannot be removed, count does not fall, and an
+	 * unbounded loop would hang the device (and stop the watchdog feed).
+	 */
+	for (int tries = BOOKS_MAX + 1; count && tries > 0; tries--) {
+		if (books_delete(index_[0].id) && count) {
+			return -EIO;
+		}
 	}
-	return 0;
+	return count ? -EIO : 0;
 }
 
 void books_storage(uint32_t *free_kib, uint32_t *total_kib)

@@ -11,6 +11,9 @@
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/kernel.h>
+#if defined(CONFIG_MCUMGR_GRP_IMG_UPLOAD_CHECK_HOOK)
+#include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
+#endif
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 
@@ -84,6 +87,14 @@ static void queue_notify(enum notify_target t, const uint8_t *data, size_t len)
 static void fast_keepalive(void)
 {
 	k_work_reschedule(&fast_off_work, K_SECONDS(FAST_IDLE_AFTER_S));
+}
+
+void op_service_fast_keepalive(void)
+{
+	if (!ble_is_fast()) {
+		ble_set_fast(true);
+	}
+	fast_keepalive();
 }
 
 static void fast_off_fn(struct k_work *w)
@@ -292,10 +303,13 @@ static ssize_t write_privacy(struct bt_conn *conn, const struct bt_gatt_attr *at
 
 static void send_book_list(uint16_t start)
 {
-	struct op_book_info list[BOOK_LIST_MAX];
+	/* Static: about 1.5 KB, too much for the Bluetooth RX thread's stack.
+	 * Only the RX thread calls this function, and there is one connection.
+	 */
+	static struct op_book_info list[BOOK_LIST_MAX];
+	static uint8_t rsp[NOTIFY_MAX];
 	uint16_t total = books_count();
 	uint16_t n = 0;
-	uint8_t rsp[NOTIFY_MAX];
 
 	for (uint16_t i = start; i < total && n < BOOK_LIST_MAX; i++) {
 		if (books_get(i, &list[n])) {
@@ -472,8 +486,13 @@ static void xfer_thread(void)
 				drain_blocks(false);
 			}
 			if (c.cmd.op == OP_XFER_DELETE) {
+				/* Stop a transfer of this book first, so no block lands
+				 * in a deleted file.
+				 */
+				bool was_partial = xfer_forget(&xfer, c.cmd.book_id);
 				int err = books_delete(c.cmd.book_id);
-				uint8_t st = err == 0 ? OP_XFER_OK
+				uint8_t st = (err == 0 || (err == -ENOENT && was_partial))
+						     ? OP_XFER_OK
 					     : err == -ENOENT ? OP_XFER_UNKNOWN_BOOK : OP_XFER_STORAGE;
 
 				r.len = op_xfer_result_encode(c.cmd.book_id, st, r.buf, sizeof(r.buf));
@@ -519,6 +538,33 @@ void op_service_disconnected(void)
 	/* A calendar staged in part stays: BEGIN with the same version resumes. */
 }
 
+#if defined(CONFIG_MCUMGR_GRP_IMG_UPLOAD_CHECK_HOOK)
+/*
+ * Each firmware-update chunk keeps the link at the fast interval. The app
+ * also sends FAST, but an update from another SMP client (or an app that
+ * does not) would otherwise run at the 2 s idle interval and take hours.
+ */
+static enum mgmt_cb_return smp_chunk_cb(uint32_t event, enum mgmt_cb_return prev_status,
+					int32_t *rc, uint16_t *group, bool *abort_more,
+					void *data, size_t data_size)
+{
+	ARG_UNUSED(event);
+	ARG_UNUSED(rc);
+	ARG_UNUSED(group);
+	ARG_UNUSED(abort_more);
+	ARG_UNUSED(data);
+	ARG_UNUSED(data_size);
+	op_service_fast_keepalive();
+	ARG_UNUSED(prev_status);
+	return MGMT_CB_OK; /* observe only; never changes the upload result */
+}
+
+static struct mgmt_callback smp_chunk_hook = {
+	.callback = smp_chunk_cb,
+	.event_id = MGMT_EVT_OP_IMG_MGMT_DFU_CHUNK,
+};
+#endif
+
 int op_service_init(void)
 {
 	static const struct bt_uuid *uuids[N_COUNT] = {
@@ -528,6 +574,9 @@ int op_service_init(void)
 	};
 
 	k_work_init_delayable(&fast_off_work, fast_off_fn);
+#if defined(CONFIG_MCUMGR_GRP_IMG_UPLOAD_CHECK_HOOK)
+	mgmt_callback_register(&smp_chunk_hook);
+#endif
 	for (int i = 0; i < N_COUNT; i++) {
 		notify_attr[i] = bt_gatt_find_by_uuid(op_svc.attrs, op_svc.attr_count, uuids[i]);
 		if (!notify_attr[i]) {
