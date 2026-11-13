@@ -28,7 +28,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 4 | (d) Swift compile risk | 0 | 2 | 6 | 8 | No | 2bb750f |
 | 5 | (e) firmware robustness | 0 | 4 | 5 | 6 | No | 3b28eab |
 | 6 | (f) test coverage and `docs/TESTING.md` | 0 | 4 | 5 | 9 | No | 17a68cb |
-| 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | PENDING |
+| 7 | (a) firmware against specs | 0 | 1 | 3 | 4 | No | eb38ef1 |
 
 ## Open items
 
