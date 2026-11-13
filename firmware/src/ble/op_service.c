@@ -474,7 +474,10 @@ static void xfer_thread(void)
 			if (c.cmd.op == XFER_OP_SUSPEND) {
 				/* Keep the partial book; START with the same id resumes it. */
 				xfer_suspend(&xfer);
-				ble_set_fast(false);
+				/* No ble_set_fast(false) here: the disconnect already
+				 * cleared it, and this command can run after a new
+				 * connection has asked for FAST.
+				 */
 				continue;
 			}
 			/*

@@ -13,6 +13,7 @@
 
 #include "ble/ble.h"
 #include "clock.h"
+#include "core/battery_policy.h"
 #include "core/op_time.h"
 #include "drivers/epd.h"
 #include "drivers/power_hw.h"
@@ -52,7 +53,7 @@ static enum ui_screen last_screen = UI_SCREEN_COUNT;
 static bool force_full;
 static uint32_t last_minute;
 static int64_t next_battery_poll;
-static bool battery_warned;
+static struct batt_policy batt;
 static uint16_t pages_since_save;
 
 void app_lock(void)
@@ -494,17 +495,16 @@ static void battery_check(void)
 	app_lock();
 	uint8_t pct = g_app.battery.percent;
 	uint8_t chg = g_app.battery.charging;
+	uint16_t mv = g_app.battery.millivolts;
 	app_unlock();
 
-	if (chg == OP_CHG_NONE && pct <= BATTERY_OFF_PERCENT) {
+	unsigned act = batt_policy_reading(&batt, (uint32_t)(k_uptime_get() / 1000), pct, mv, chg);
+
+	if (act & BATT_ACT_OFF) {
 		app_power_off("Charge me", "The battery is empty. Connect the charger to switch on.");
 	}
-	if (chg == OP_CHG_NONE && pct <= BATTERY_WARN_PERCENT && !battery_warned) {
-		battery_warned = true;
+	if (act & BATT_ACT_WARN) {
 		alerts_play(OP_PATTERN_DOUBLE, 1);
-	}
-	if (pct > BATTERY_WARN_PERCENT + 5 || chg != OP_CHG_NONE) {
-		battery_warned = false;
 	}
 	/* Protocol 5.1: notify Status on a change of percent or charging state. */
 	static uint8_t last_pct = 0xFF, last_chg = 0xFF;
@@ -694,6 +694,7 @@ void app_init_state(void)
 	app_filter_init(&g_app.filter);
 	ui_nav_init(&g_app.nav);
 	sched_init(&sched);
+	batt_policy_init(&batt);
 }
 
 void app_run(void)

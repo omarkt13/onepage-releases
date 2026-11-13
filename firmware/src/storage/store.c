@@ -276,6 +276,8 @@ void store_erase_personal(void)
 	(void)settings_delete("op/set");
 	(void)settings_delete("op/priv");
 	(void)settings_delete("op/calm");
+	(void)settings_delete("op/away");
+	away_min = 0;
 	for (int c = 0; c < FILTER_CHUNKS; c++) {
 		snprintf(key, sizeof(key), "op/flt/%d", c);
 		(void)settings_delete(key);

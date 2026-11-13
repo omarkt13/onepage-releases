@@ -4,6 +4,7 @@
 
 #include "alerts.h"
 #include "app_filter.h"
+#include "battery_policy.h"
 #include "calendar.h"
 #include "gesture.h"
 #include "notif_list.h"
@@ -794,6 +795,51 @@ static void test_transfer_forget(void)
 	CHECK(r.len == 0 || reply_status(&r) != OP_XFER_OK);
 }
 
+/* Pass 11: one low gauge reading never switches the device off. */
+static void test_battery_policy(void)
+{
+	struct batt_policy b;
+
+	batt_policy_init(&b);
+	/* A single 0 % reading at start-up, then a normal one: stay on. */
+	CHECK_EQ(batt_policy_reading(&b, 0, 0, 0, 0) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 0, 80, 3950, 0) & BATT_ACT_OFF, 0);
+	/* Two low readings within the confirm time: stay on. */
+	batt_policy_init(&b);
+	CHECK_EQ(batt_policy_reading(&b, 100, 2, 3500, 0) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 100 + BATT_CONFIRM_S - 1, 2, 3500, 0) & BATT_ACT_OFF, 0);
+	/* Low for the confirm time: off. */
+	CHECK(batt_policy_reading(&b, 100 + BATT_CONFIRM_S, 2, 3500, 0) & BATT_ACT_OFF);
+	/* 3 % with a healthy voltage (wrong gauge model): stay on. */
+	batt_policy_init(&b);
+	CHECK_EQ(batt_policy_reading(&b, 0, 3, 3800, 0) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 600, 3, 3800, 0) & BATT_ACT_OFF, 0);
+	/* Voltage floor wins over a high percentage. */
+	CHECK_EQ(batt_policy_reading(&b, 700, 40, 3290, 0) & BATT_ACT_OFF, 0);
+	CHECK(batt_policy_reading(&b, 800, 40, 3290, 0) & BATT_ACT_OFF);
+	/* Unknown voltage: the percentage alone decides, still confirmed. */
+	batt_policy_init(&b);
+	CHECK_EQ(batt_policy_reading(&b, 0, 1, 0, 0) & BATT_ACT_OFF, 0);
+	CHECK(batt_policy_reading(&b, 300, 1, 0, 0) & BATT_ACT_OFF);
+	/* On the charger: never off, and a recovery resets the low run. */
+	batt_policy_init(&b);
+	CHECK_EQ(batt_policy_reading(&b, 0, 1, 3200, 1) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 300, 1, 3200, 1) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 400, 2, 3500, 0) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 450, 20, 3900, 0) & BATT_ACT_OFF, 0);
+	CHECK_EQ(batt_policy_reading(&b, 500, 2, 3500, 0) & BATT_ACT_OFF, 0);
+
+	/* Warning: once at 10 %, again only after rising above 15 % or charging. */
+	batt_policy_init(&b);
+	CHECK_EQ(batt_policy_reading(&b, 0, 11, 3700, 0), BATT_ACT_NONE);
+	CHECK_EQ(batt_policy_reading(&b, 10, 10, 3680, 0), BATT_ACT_WARN);
+	CHECK_EQ(batt_policy_reading(&b, 20, 9, 3670, 0), BATT_ACT_NONE);
+	CHECK_EQ(batt_policy_reading(&b, 30, 14, 3700, 0), BATT_ACT_NONE);
+	CHECK_EQ(batt_policy_reading(&b, 40, 10, 3680, 0), BATT_ACT_NONE);
+	CHECK_EQ(batt_policy_reading(&b, 50, 10, 3680, 1), BATT_ACT_NONE);
+	CHECK_EQ(batt_policy_reading(&b, 60, 10, 3680, 0), BATT_ACT_WARN);
+}
+
 int main(void)
 {
 	static const struct test_case cases[] = {
@@ -807,6 +853,7 @@ int main(void)
 		{"gestures", test_gestures},
 		{"navigation", test_navigation},
 		{"alerts_schedule_time", test_alerts_and_schedule},
+		{"battery_policy", test_battery_policy},
 	};
 	return t_run(cases, (int)(sizeof(cases) / sizeof(cases[0])));
 }

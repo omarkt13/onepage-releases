@@ -4,8 +4,11 @@
 
 #include <stdint.h>
 
-#define BATTERY_WARN_PERCENT 10
-#define BATTERY_OFF_PERCENT 3
+#include "core/battery_policy.h"
+
+/* The rules themselves are in core/battery_policy.c. */
+#define BATTERY_WARN_PERCENT BATT_WARN_PERCENT
+#define BATTERY_OFF_PERCENT BATT_OFF_PERCENT
 
 /*
  * Shows a last message, cuts the display supply and enters System OFF

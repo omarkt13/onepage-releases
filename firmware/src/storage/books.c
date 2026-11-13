@@ -193,6 +193,51 @@ int books_delete(uint32_t id)
 	return found ? 0 : -ENOENT;
 }
 
+/*
+ * Removes every file in the book folder, also partial transfers (.prt and
+ * .pin) that are not in the index. "Erase and reset" must leave no book
+ * text on the external flash. Bounded, so a file that cannot be removed
+ * cannot hang the device.
+ */
+static int unlink_dir_all(void)
+{
+	struct fs_dir_t dir;
+	struct fs_dirent ent;
+	char names[8][16];
+	int failed = 0;
+
+	for (int round = 0; round < (BOOKS_MAX * 4) / 8 + 4; round++) {
+		size_t n = 0;
+
+		fs_dir_t_init(&dir);
+		if (fs_opendir(&dir, DIR) != 0) {
+			return -EIO;
+		}
+		while (n < ARRAY_SIZE(names) && fs_readdir(&dir, &ent) == 0 && ent.name[0]) {
+			if (ent.type == FS_DIR_ENTRY_FILE && strlen(ent.name) < sizeof(names[0])) {
+				strcpy(names[n++], ent.name);
+			}
+		}
+		fs_closedir(&dir);
+		if (n == 0) {
+			return 0;
+		}
+		failed = 0;
+		for (size_t i = 0; i < n; i++) {
+			char p[32];
+
+			snprintf(p, sizeof(p), DIR "/%.15s", names[i]);
+			if (fs_unlink(p)) {
+				failed++;
+			}
+		}
+		if (failed == (int)n) {
+			return -EIO; /* no progress */
+		}
+	}
+	return -EIO;
+}
+
 int books_erase_all(void)
 {
 	if (!mounted) {
@@ -204,10 +249,13 @@ int books_erase_all(void)
 	 */
 	for (int tries = BOOKS_MAX + 1; count && tries > 0; tries--) {
 		if (books_delete(index_[0].id) && count) {
-			return -EIO;
+			break;
 		}
 	}
-	return count ? -EIO : 0;
+	int err = unlink_dir_all();
+
+	scan();
+	return (count || err) ? -EIO : 0;
 }
 
 void books_storage(uint32_t *free_kib, uint32_t *total_kib)

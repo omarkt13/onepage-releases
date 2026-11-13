@@ -1,6 +1,7 @@
 /*
  * OnePage Mini - MCP73833 charger status. STAT1/STAT2 are open drain,
- * active low:  L/H charging, H/L complete, H/H not charging, L/L fault.
+ * active low:  L/H charging, H/L complete, H/H no input, standby or fault
+ * (the datasheet shows faults as H/H), L/L test mode (reported as FAULT).
  */
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
@@ -83,7 +84,14 @@ int charger_init(void)
 
 void charger_prepare_poweroff(void)
 {
-	/* Plugging in the charger pulls STAT1 low: that wakes the device. */
+	/* Plugging in the charger pulls STAT1 low: that wakes the device.
+	 * If STAT1 is already low (switched off while charging), a level wake
+	 * would restart the device at once, so only the button wakes it then.
+	 */
+	if (gpio_pin_get_dt(&stat1) == 1) {
+		gpio_pin_interrupt_configure_dt(&stat1, GPIO_INT_DISABLE);
+		return;
+	}
 	gpio_pin_interrupt_configure_dt(&stat1, GPIO_INT_LEVEL_ACTIVE);
 }
 #else
