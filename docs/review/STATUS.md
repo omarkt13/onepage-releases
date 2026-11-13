@@ -84,7 +84,7 @@ Rotation: (a) firmware against specs, (b) app against specs, (c) firmware and ap
 | 9 | (c) firmware and app byte by byte | 0 | 2 | 3 | 2 | No | 0db74ab |
 | 10 | (d) Swift compile risk | 0 | 0 | 3 | 3 | Yes | 00cf469 |
 | 11 | (e) firmware robustness | 0 | 2 | 4 | 6 | No | b9baeaa |
-| 12 | (f) test coverage and `docs/TESTING.md` | 0 | 0 | 3 | 3 | Yes | (this commit) |
+| 12 | (f) test coverage and `docs/TESTING.md` | 0 | 0 | 3 | 3 | Yes | b3e731d |
 
 ## Open items
 
